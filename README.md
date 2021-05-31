@@ -5,6 +5,7 @@
 ## 必要パッケージ
 - base-devel
 - clang
+- lld
 - nasm
 - qemu
 - acpica
