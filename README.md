@@ -10,6 +10,8 @@
 - acpica
 - edk2-ovmf
 - git
+- cmake
+- ninja
 - 抜けがあるかも
 
 ## EDK2のインストール
@@ -23,7 +25,7 @@ $ (cd BaseTools/Source/C/BrotliCompress/brotli && git apply このリポジト�
 $ make -C BaseTools
 ```
 
-## ビルド
+## ブートローダーのビルド
 
 ### 初回
 ``` bash
@@ -50,6 +52,12 @@ $ build
 # EDK2のインストール先で
 $ . ./edksetup.sh
 $ build
+```
+
+## カーネルのビルド
+``` bash
+# このリポジトリのルートで
+$ ./build-kernel.sh
 ```
 
 ## 実行
