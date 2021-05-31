@@ -1,0 +1,145 @@
+Language: Cpp
+Standard: Latest
+
+# 一行ごとの文字数制限
+ColumnLimit: 120
+
+# === インデントの設定 ===
+
+# インデントにタブを使う
+UseTab: ForContinuationAndIndentation
+
+# インデント幅を4にする
+TabWidth: 4
+IndentWidth: 4
+ContinuationIndentWidth: 4
+ConstructorInitializerIndentWidth: 4
+
+# アクセス修飾子をインデントしない
+AccessModifierOffset: -4
+
+# case のラベルをインデントしない
+IndentCaseLabels: false
+
+# 名前空間でインデントする
+NamespaceIndentation: All
+
+# プリプロセッサディレクティブでインデントする(clang-format version 5.0.1 現在未実装)
+#IndentPPDirectives: AfterHash
+
+# 関数の戻り値の型の宣言/定義の後にインデントしない
+IndentWrappedFunctionNames: false
+
+# === 空白の設定 ===
+
+# 空白での調整(=合わせなど)を行わない
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignEscapedNewlines: false
+AlignOperands: false
+AlignTrailingComments: false
+
+# template キーワードの後に空白を加える
+SpaceAfterTemplateKeyword: true
+
+# 演算子の前後に空白を加える
+SpaceBeforeAssignmentOperators: true
+
+# 制御フロー文の丸括弧の前に空白を加える: true
+SpaceBeforeParens: ControlStatements
+
+# 末尾コメントの前に空白を空白を加える
+SpacesBeforeTrailingComments: 1
+
+# 波括弧以外の括弧の中に空白を加えない
+SpacesInAngles: false
+SpacesInParentheses: false
+SpacesInCStyleCastParentheses: false
+SpacesInContainerLiterals: false
+SpacesInSquareBrackets: false
+
+# 初期化の波括弧の中に空白を加えない
+Cpp11BracedListStyle: true
+
+# C スタイルのキャストの後に空白を加えない
+SpaceAfterCStyleCast: false
+
+# 空の括弧の中に空白を加えない
+SpaceInEmptyParentheses: false
+
+# ポインタの * を型名に寄せる
+DerivePointerAlignment: false
+PointerAlignment: Left
+
+# === 改行の設定 ===
+
+# 波括弧を常に同じ行に設置
+BreakBeforeBraces: Attach
+
+# 短い if, while を1行にする
+AllowShortIfStatementsOnASingleLine: true
+AllowShortLoopsOnASingleLine: true
+
+# 短い case ラベル, 波括弧を1行にしない
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortBlocksOnASingleLine: false
+
+# 空の関数本体のみ1行にする
+AllowShortFunctionsOnASingleLine: Empty
+
+# 一行に入り切らない引数リストで ( の前で常に改行する
+AlignAfterOpenBracket: AlwaysBreak
+
+# 一度でも改行したら引数を同一行にならべない
+BinPackArguments: false
+BinPackParameters: false
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+AllowAllParametersOfDeclarationOnNextLine: false
+
+# テンプレート宣言の後に改行する
+AlwaysBreakTemplateDeclarations: true
+
+# 連続した文字列リテラルの前で改行する
+AlwaysBreakBeforeMultilineStrings: true
+
+# 演算子の後で改行する
+BreakBeforeBinaryOperators: None
+BreakBeforeTernaryOperators: true
+
+# コンストラクタの初期化子リストの : のあとで改行する
+BreakConstructorInitializers: AfterColon
+
+# 関数の戻り値の型の宣言/定義の後に改行しない
+AlwaysBreakAfterReturnType: None
+
+# 複数の親クラスを指定しても改行しない
+BreakBeforeInheritanceComma: false
+
+# 連続した空行を許容しない
+MaxEmptyLinesToKeep: 1
+
+# ブロックの開始直後にある空行を許容しない
+KeepEmptyLinesAtTheStartOfBlocks: false
+
+# 文字列リテラルに改行を加えない
+BreakStringLiterals: false
+
+# コメントに改行を加えない
+ReflowComments: false
+
+# === 名前空間の設定 ===
+
+# 名前空間の終わりにコメントを加えない
+FixNamespaceComments: false
+
+# 名前空間を縮めない(C++17 から入れ子名前空間の定義ができる)
+CompactNamespaces: false
+
+# === ソートの設定 ===
+
+# include, using をソートする
+SortIncludes: true
+SortUsingDeclarations: true
+
+# include の塊を結合しない
+IncludeBlocks: Preserve
