@@ -1,4 +1,4 @@
-ゼロからのOS自作入門(http://zero.osdev.jp/)の写経
+ゼロからのOS自作入門(http://zero.osdev.jp/) の写経
 
 # Arch Linuxでのビルド方法
 
