@@ -25,7 +25,7 @@ $ make -C BaseTools
 
 ## ビルド
 
-### (初回)
+### 初回
 ``` bash
 # EDK2のインストール先で
 $ ln -s このリポジトリのルート/MikanLoaderPkg
