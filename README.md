@@ -57,3 +57,8 @@ $ build
 # このリポジトリのルートで
 $ ./run_qemu.sh EDK2のインストール先/Build/MikanLoaderX64/DEBUG_CLANG38/X64/Loader.efi
 ```
+
+# ライセンス
+このソフトウェアはApache License Version 2.0(全文は`LICENSE`を参照)の元で配布されているMikanOS (https://github.com/uchan-nos/mikanos) を、コードのフォーマットなどを変更しながら書き写したものです。
+
+このソフトウェア自身にもApache License Version 2.0を適用します。
