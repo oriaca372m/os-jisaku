@@ -1,2 +1,3 @@
 qemu-workdir/
+build-kernel/
 compile_flags.txt

@@ -23,6 +23,11 @@ mkdir -p mnt
 sudo mount -o loop disk.img mnt
 sudo mkdir -p mnt/EFI/BOOT
 sudo cp "$executable" mnt/EFI/BOOT/BOOTX64.EFI
+
+mkdir -p input
+touch input/empty
+sudo cp input/* mnt
+
 sudo umount mnt
 
 qemu-system-x86_64 \
