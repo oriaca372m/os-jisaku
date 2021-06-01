@@ -8,6 +8,9 @@ set(CMAKE_CXX_LINK_EXECUTABLE "/usr/bin/ld.lld <LINK_FLAGS> <OBJECTS> <LINK_LIBR
 
 add_executable(kernel.elf main.cpp)
 
+target_include_directories(kernel.elf PUBLIC "/usr/include/c++/v1")
+target_compile_definitions(kernel.elf PUBLIC __ELF__ _LDBL_EQ_DBL _GNU_SOURCE _POSIX_TIMERS _LIBCPP_HAS_NO_THREADS)
+
 set_property(TARGET kernel.elf PROPERTY CXX_STANDARD 17)
 target_compile_options(kernel.elf
 	PUBLIC -O2
@@ -18,6 +21,7 @@ target_compile_options(kernel.elf
 	PUBLIC -mno-red-zone
 	PUBLIC -fno-exceptions
 	PUBLIC -fno-rtti
+	PUBLIC -nostdlibinc
 )
 
 set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/linker.ld")

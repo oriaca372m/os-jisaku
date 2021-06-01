@@ -164,10 +164,7 @@ static const CHAR16* GetPixelFormatUnicode(EFI_GRAPHICS_PIXEL_FORMAT fmt) {
 	}
 }
 
-static void DrawPixels(EFI_HANDLE image_handle) {
-	EFI_GRAPHICS_OUTPUT_PROTOCOL* gop;
-	OpenGOP(image_handle, &gop);
-
+static void DrawPixels(EFI_GRAPHICS_OUTPUT_PROTOCOL* gop) {
 	Print(
 		u"Resolution: %ux%u, Pixel Format: %s, %u pixels/line\n",
 		gop->Mode->Info->HorizontalResolution,
@@ -205,7 +202,10 @@ EFI_STATUS EFIAPI UefiMain(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* system_tab
 	SaveMemoryMap(&memmap, memmap_file);
 	memmap_file->Close(memmap_file);
 
-	DrawPixels(image_handle);
+	EFI_GRAPHICS_OUTPUT_PROTOCOL* gop;
+	OpenGOP(image_handle, &gop);
+
+	DrawPixels(gop);
 
 	// カーネルの読み込み
 	EFI_FILE_PROTOCOL* kernel_file;
@@ -243,9 +243,9 @@ EFI_STATUS EFIAPI UefiMain(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* system_tab
 	// ELFファイルはエントリポイントアドレスがファイルの先頭から24バイト目から8バイト書かれる
 	UINT64 entry_addr = *(UINT64*)(kernel_base_addr + 24);
 
-	typedef void EntryPointType(void);
+	typedef void EntryPointType(UINT64, UINT64);
 	EntryPointType* entry_point = (EntryPointType*)entry_addr;
-	entry_point();
+	entry_point(gop->Mode->FrameBufferBase, gop->Mode->FrameBufferSize);
 
 	Print(u"All done\n");
 	Stop();

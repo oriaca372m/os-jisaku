@@ -13,6 +13,7 @@
 - git
 - cmake
 - ninja
+- libc++
 - 抜けがあるかも
 
 ## EDK2のインストール
