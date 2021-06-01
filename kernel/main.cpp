@@ -60,6 +60,39 @@ extern "C" void __cxa_pure_virtual() {
 	}
 }
 
+const std::uint8_t fontA[16] = {
+	0b00000000,
+	0b00011000,
+	0b00011000,
+	0b00011000,
+	0b00011000,
+	0b00100100,
+	0b00100100,
+	0b00100100,
+	0b00100100,
+	0b01111110,
+	0b01000010,
+	0b01000010,
+	0b01000010,
+	0b11100111,
+	0b00000000,
+	0b00000000,
+};
+
+void write_ascii(PixelWriter& writer, int x, int y, char c, const PixelColor& color) {
+	if (c != 'A') {
+		return;
+	}
+
+	for (int dy = 0; dy < 16; ++dy) {
+		for (int dx = 0; dx < 8; ++dx) {
+			if ((fontA[dy] << dx & 0b1000'0000) != 0) {
+				writer.write(x + dx, y + dy, color);
+			}
+		}
+	}
+}
+
 extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 	char pixel_writer_buf[sizeof(RGBResv8BitPerColorPixelWriter)];
 	PixelWriter* pixel_writer = reinterpret_cast<PixelWriter*>(pixel_writer_buf);
@@ -81,6 +114,9 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 			pixel_writer->write(x, y, {0x0, 0xFF, 0x0});
 		}
 	}
+
+	write_ascii(*pixel_writer, 0, 0, 'A', {0x0, 0x0, 0x0});
+	write_ascii(*pixel_writer, 8, 0, 'A', {0x0, 0x0, 0x0});
 
 	while (true) {
 		__asm("hlt");
