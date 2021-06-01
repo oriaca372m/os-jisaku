@@ -10,7 +10,7 @@ then
 else
 	mkdir build-kernel
 	cd build-kernel
-	cmake -G Ninja ../kernel
+	cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -G Ninja ../kernel
 fi
 
 ninja
