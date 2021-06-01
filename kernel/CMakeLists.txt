@@ -6,7 +6,7 @@ set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
 set(CMAKE_C_LINK_EXECUTABLE "/usr/bin/ld.lld <LINK_FLAGS> <OBJECTS> <LINK_LIBRARIES> -o <TARGET>")
 set(CMAKE_CXX_LINK_EXECUTABLE "/usr/bin/ld.lld <LINK_FLAGS> <OBJECTS> <LINK_LIBRARIES> -o <TARGET>")
 
-add_executable(kernel.elf main.cpp)
+add_executable(kernel.elf main.cpp graphics.cpp font.cpp)
 
 target_include_directories(kernel.elf PUBLIC "/usr/include/c++/v1")
 target_compile_definitions(kernel.elf PUBLIC __ELF__ _LDBL_EQ_DBL _GNU_SOURCE _POSIX_TIMERS _LIBCPP_HAS_NO_THREADS)
