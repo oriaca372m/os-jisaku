@@ -32,3 +32,22 @@ target_link_options(kernel.elf
 	PUBLIC --static
 	PUBLIC -T ${LINKER_SCRIPT}
 )
+
+add_custom_command(
+	OUTPUT hankaku.bin
+	COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/../tools/makefont.py" -o hankaku.bin "${CMAKE_CURRENT_SOURCE_DIR}/../assets/hankaku.txt"
+	DEPENDS ../assets/hankaku.txt
+	VERBATIM
+)
+
+add_custom_command(
+	OUTPUT hankaku.o
+	COMMAND objcopy -I binary -O elf64-x86-64 -B i386:x86-64 hankaku.bin hankaku.o
+	DEPENDS hankaku.bin
+	VERBATIM
+)
+
+add_library(shinonome_font_bin OBJECT IMPORTED)
+set_property(TARGET shinonome_font_bin PROPERTY IMPORTED_OBJECTS "${CMAKE_CURRENT_BINARY_DIR}/hankaku.o")
+
+target_link_libraries(kernel.elf PUBLIC shinonome_font_bin)
