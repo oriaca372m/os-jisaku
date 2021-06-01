@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <cstdint>
 
 #include "frame_buffer_config.hpp"
@@ -8,31 +9,82 @@ struct PixelColor {
 	std::uint8_t b;
 };
 
-void WritePixel(const FrameBufferConfig& config, int x, int y, const PixelColor& c) {
-	const int pixel_position = config.pixels_per_scan_line * y + x;
+class PixelWriter {
+public:
+	PixelWriter(const FrameBufferConfig& config) : config_{config} {}
+	virtual ~PixelWriter() = default;
 
-	auto p = config.frame_buffer + 4 * pixel_position;
-	if (config.pixel_format == PixelFormat::RGBResv8BitPerColor) {
+	virtual void Write(int x, int y, const PixelColor& c) = 0;
+
+protected:
+	std::uint8_t* PixelAt(int x, int y) {
+		const int pixel_position = config_.pixels_per_scan_line * y + x;
+		return config_.frame_buffer + 4 * pixel_position;
+	}
+
+private:
+	const FrameBufferConfig config_;
+};
+
+class RGBResv8BitPerColorPixelWriter final : public PixelWriter {
+	using PixelWriter::PixelWriter;
+
+	void Write(int x, int y, const PixelColor& c) override {
+		auto p = PixelAt(x, y);
 		p[0] = c.r;
 		p[1] = c.g;
 		p[2] = c.b;
-	} else if (config.pixel_format == PixelFormat::BGRResv8BitPerColor) {
+	}
+};
+
+class BGRResv8BitPerColorPixelWriter final : public PixelWriter {
+	using PixelWriter::PixelWriter;
+
+	void Write(int x, int y, const PixelColor& c) override {
+		auto p = PixelAt(x, y);
 		p[0] = c.b;
 		p[1] = c.g;
 		p[2] = c.r;
 	}
+};
+
+void* operator new(std::size_t, void* buf) {
+	return buf;
 }
 
+void operator delete(void*) noexcept {}
+
+extern "C" void __cxa_pure_virtual() {
+	while (true) {
+		__asm("hlt");
+	}
+}
+
+char pixel_writer_buf[sizeof(RGBResv8BitPerColorPixelWriter)];
+PixelWriter* pixel_writer = reinterpret_cast<PixelWriter*>(pixel_writer_buf);
+
 extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
+	if (frame_buffer_config.pixel_format == PixelFormat::RGBResv8BitPerColor) {
+		new (pixel_writer_buf) RGBResv8BitPerColorPixelWriter(frame_buffer_config);
+	} else if (frame_buffer_config.pixel_format == PixelFormat::BGRResv8BitPerColor) {
+		new (pixel_writer_buf) BGRResv8BitPerColorPixelWriter(frame_buffer_config);
+	}
+
 	for (int x = 0; x < frame_buffer_config.horizontal_resolution; ++x) {
 		for (int y = 0; y < frame_buffer_config.vertical_resolution; ++y) {
-			WritePixel(frame_buffer_config, x, y, {0xFF, 0xFF, 0xFF});
+			pixel_writer->Write(x, y, {0xFF, 0xFF, 0xFF});
 		}
 	}
 
 	for (int x = 0; x < 200; ++x) {
 		for (int y = 0; y < 100; ++y) {
-			WritePixel(frame_buffer_config, x, y, {0x0, 0xFF, 0x0});
+			pixel_writer->Write(x, y, {0x0, 0xFF, 0x0});
+		}
+	}
+
+	for (int x = 0; x < 200; ++x) {
+		for (int y = 100; y < 200; ++y) {
+			pixel_writer->Write(x, y, {0x0, 0x0, 0xFF});
 		}
 	}
 
