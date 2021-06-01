@@ -10,6 +10,8 @@
 
 [Sources]
   Main.c
+  Common.c
+  LoadKernel.c
 
 [Packages]
   MdePkg/MdePkg.dec
