@@ -8,8 +8,11 @@ set(CMAKE_CXX_LINK_EXECUTABLE "/usr/bin/ld.lld <LINK_FLAGS> <OBJECTS> <LINK_LIBR
 
 add_executable(kernel.elf main.cpp graphics.cpp font.cpp)
 
-target_include_directories(kernel.elf PUBLIC "/usr/include/c++/v1")
-target_compile_definitions(kernel.elf PUBLIC __ELF__ _LDBL_EQ_DBL _GNU_SOURCE _POSIX_TIMERS _LIBCPP_HAS_NO_THREADS)
+target_include_directories(kernel.elf PUBLIC
+	"${CMAKE_CURRENT_SOURCE_DIR}/../stdlib/build/include"
+	"${CMAKE_CURRENT_SOURCE_DIR}/../stdlib/build/include/c++/v1"
+)
+target_compile_definitions(kernel.elf PUBLIC __ELF__ _LDBL_EQ_DBL _GNU_SOURCE _POSIX_TIMERS)
 
 set_property(TARGET kernel.elf PROPERTY CXX_STANDARD 17)
 target_compile_options(kernel.elf
