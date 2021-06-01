@@ -13,7 +13,7 @@
 - git
 - cmake
 - ninja
-- libc++
+- docker
 - 抜けがあるかも
 
 ## EDK2のインストール
@@ -54,6 +54,13 @@ $ build
 # EDK2のインストール先で
 $ . ./edksetup.sh
 $ build
+```
+
+## カーネルで使用する標準ライブラリのビルド
+``` bash
+# このリポジトリのルートで
+$ cd stdlib
+$ ./build.sh
 ```
 
 ## カーネルのビルド
