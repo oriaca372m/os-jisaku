@@ -2,6 +2,8 @@
 
 set -eu
 
+cd "`dirname "$0"`"
+
 exe() {
     echo "$@"
     "$@"
@@ -26,6 +28,7 @@ exe rm -f ${CIDFILE}
 echo "==========================================="
 echo "Copying standard libraries."
 echo "==========================================="
+rm -rf build
 mkdir -p build
 DST="`readlink -f build`"
 exe sudo docker cp ${CID}:/usr/local/x86_64-elf/. "$DST"
