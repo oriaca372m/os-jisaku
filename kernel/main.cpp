@@ -13,6 +13,25 @@ void* operator new(std::size_t, void* buf) {
 
 void operator delete(void*) noexcept {}
 
+Console* console;
+
+template <typename... Args>
+int printk(const char* format, Args... args) {
+	char buf[1024];
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-security"
+	auto result = std::snprintf(buf, sizeof(buf), format, args...);
+#pragma clang diagnostic pop
+
+	if (result < 0) {
+		return result;
+	}
+
+	console->put_string(buf);
+	return result;
+}
+
 extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 	char pixel_writer_buf[sizeof(RGBResv8BitPerColorPixelWriter)];
 	PixelWriter* pixel_writer = reinterpret_cast<PixelWriter*>(pixel_writer_buf);
@@ -23,16 +42,15 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 		new (pixel_writer_buf) BGRResv8BitPerColorPixelWriter(frame_buffer_config);
 	}
 
-	Console console(*pixel_writer, {0xc8, 0xc8, 0xc6}, {0x1d, 0x1f, 0x21});
+	Console console_instance(*pixel_writer, {0xc8, 0xc8, 0xc6}, {0x1d, 0x1f, 0x21});
+	console = &console_instance;
 
-	console.put_string(u8"chino chan kawaii!\n");
-	console.put_string(u8"gochuumon wa usagi desu ka?\n");
+	printk(u8"chino chan kawaii!\n");
+	printk(u8"gochuumon wa usagi desu ka?\n");
 
 	for (int i = 0; i < 100; i++) {
-		char buf[128];
-		std::snprintf(buf, sizeof(buf), "i = %d", i);
-		console.put_string(buf);
-		console.put_string(u8"chino chan kawaii!");
+		printk("i = %d", i);
+		printk(u8"chino chan kawaii!");
 
 		for (volatile int j = 0; j < 100000000; j++) {
 		}
