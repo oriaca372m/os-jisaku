@@ -11,12 +11,6 @@ void* operator new(std::size_t, void* buf) {
 
 void operator delete(void*) noexcept {}
 
-extern "C" void __cxa_pure_virtual() {
-	while (true) {
-		__asm("hlt");
-	}
-}
-
 extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 	char pixel_writer_buf[sizeof(RGBResv8BitPerColorPixelWriter)];
 	PixelWriter* pixel_writer = reinterpret_cast<PixelWriter*>(pixel_writer_buf);
