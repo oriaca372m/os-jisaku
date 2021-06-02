@@ -86,8 +86,18 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 		new (pixel_writer_buf) BGRResv8BitPerColorPixelWriter(frame_buffer_config);
 	}
 
-	Console console_instance(*pixel_writer, {0xc8, 0xc8, 0xc6}, {0x1d, 0x1f, 0x21});
+	const PixelColor desktop_fg_color{0xc8, 0xc8, 0xc6};
+	const PixelColor desktop_bg_color{0x1d, 0x1f, 0x21};
+	Console console_instance(*pixel_writer, desktop_fg_color, desktop_bg_color);
 	console = &console_instance;
+
+	const int frame_width = frame_buffer_config.horizontal_resolution;
+	const int frame_height = frame_buffer_config.vertical_resolution;
+
+	draw_filled_rectangle(*pixel_writer, {0, 0}, {frame_width, frame_height - 50}, desktop_bg_color);
+	draw_filled_rectangle(*pixel_writer, {0, frame_height - 50}, {frame_width, 50}, {1, 8, 17});
+	draw_filled_rectangle(*pixel_writer, {0, frame_height - 50}, {frame_width / 5, 50}, {80, 80, 80});
+	draw_rectangle(*pixel_writer, {10, frame_height - 40}, {30, 30}, {160, 160, 160});
 
 	printk(u8"chino chan kawaii!\n");
 	printk(u8"gochuumon wa usagi desu ka?\n");
