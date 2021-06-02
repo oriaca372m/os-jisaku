@@ -85,18 +85,18 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 	auto err = pci::scan_all_bus();
 	printk("scan_all_bus: %s\n", err.name());
 
+	pci::Device* xhc_device = nullptr;
 	for (int i = 0; i < pci::num_devices; ++i) {
-		const auto& device = pci::devices[i];
-		auto vendor_id = pci::read_vendor_id(device.bus, device.device, device.function);
-		auto class_code = pci::read_class_code(device.bus, device.device, device.function);
-		printk(
-			"%d.%d.%d: vender %04x, class %08x, header: %02x\n",
-			device.bus,
-			device.device,
-			device.function,
-			vendor_id,
-			class_code,
-			device.header_type);
+		if (pci::devices[i].class_code.match(0x0cu, 0x03u, 0x30u)) {
+			xhc_device = &pci::devices[i];
+			if (xhc_device->vendor_id == 0x8086) {
+				break;
+			}
+		}
+	}
+
+	if (xhc_device != nullptr) {
+		printk("xHC has been found: %d.%d.%d\n", xhc_device->bus, xhc_device->device, xhc_device->function);
 	}
 
 	draw_mouse(*pixel_writer, 200, 100);

@@ -31,9 +31,15 @@ namespace pci {
 		return (read_data() >> 16) & 0xffu;
 	}
 
-	std::uint32_t read_class_code(std::uint8_t bus, std::uint8_t device, std::uint8_t function) {
+	ClassCode read_class_code(std::uint8_t bus, std::uint8_t device, std::uint8_t function) {
 		write_address(make_address(bus, device, function, 0x08));
-		return read_data();
+		auto data = read_data();
+
+		ClassCode cc;
+		cc.base = (data >> 24) & 0xffu;
+		cc.sub = (data >> 16) & 0xffu;
+		cc.interface = (data >> 8) & 0xffu;
+		return cc;
 	}
 
 	std::uint32_t read_bus_numbers(std::uint8_t bus, std::uint8_t device, std::uint8_t function) {
@@ -45,27 +51,32 @@ namespace pci {
 		return (header_type & 0b1000'0000u) == 0;
 	}
 
-	Error add_device(std::uint8_t bus, std::uint8_t device, std::uint8_t function, std::uint8_t header_type) {
+	Error add_device(
+		std::uint8_t bus,
+		std::uint8_t device,
+		std::uint8_t function,
+		std::uint8_t header_type,
+		const ClassCode& class_code) {
 		if (num_devices == devices.size()) {
 			return Error::Code::Full;
 		}
 
-		devices[num_devices] = Device{bus, device, function, header_type};
+		auto vendor_id = read_vendor_id(bus, device, function);
+		devices[num_devices] = Device{bus, device, function, header_type, vendor_id, class_code};
+
 		++num_devices;
 		return Error::Code::Success;
 	}
 
 	Error scan_function(std::uint8_t bus, std::uint8_t device, std::uint8_t function) {
 		auto header_type = read_header_type(bus, device, function);
-		if (auto err = add_device(bus, device, function, header_type)) {
+		auto class_code = read_class_code(bus, device, function);
+
+		if (auto err = add_device(bus, device, function, header_type, class_code)) {
 			return err;
 		}
 
-		auto class_code = read_class_code(bus, device, function);
-		std::uint8_t base = (class_code >> 24) & 0xffu;
-		std::uint8_t sub = (class_code >> 16) & 0xffu;
-
-		if (base == 0x06u && sub == 0x04u) {
+		if (class_code.base == 0x06u && class_code.sub == 0x04u) {
 			auto bus_numbers = read_bus_numbers(bus, device, function);
 			std::uint8_t secondary_bus = (bus_numbers >> 8) & 0xffu;
 			return scan_bus(secondary_bus);

@@ -32,6 +32,9 @@ sudo umount mnt
 
 qemu-system-x86_64 \
 	-monitor stdio \
+	-device nec-usb-xhci,id=xhci \
+	-device usb-mouse \
+	-device usb-kbd \
 	-drive if=pflash,format=raw,readonly=on,file=/usr/share/edk2-ovmf/x64/OVMF_CODE.fd \
 	-drive if=pflash,format=raw,file=OVMF_VARS.fd \
 	-drive format=raw,index=0,media=disk,file=disk.img
