@@ -1,16 +1,14 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <new>
 
 #include "console.hpp"
 #include "font.hpp"
 #include "frame_buffer_config.hpp"
 #include "graphics.hpp"
+#include "pci.hpp"
 #include "utils.hpp"
-
-void* operator new(std::size_t, void* buf) {
-	return buf;
-}
 
 void operator delete(void*) noexcept {}
 
@@ -83,6 +81,23 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 
 	printk(u8"chino chan kawaii!\n");
 	printk(u8"gochuumon wa usagi desu ka?\n");
+
+	auto err = pci::scan_all_bus();
+	printk("scan_all_bus: %d\n", err);
+
+	for (int i = 0; i < pci::num_devices; ++i) {
+		const auto& device = pci::devices[i];
+		auto vendor_id = pci::read_vendor_id(device.bus, device.device, device.function);
+		auto class_code = pci::read_class_code(device.bus, device.device, device.function);
+		printk(
+			"%d.%d.%d: vender %04x, class %08x, header: %02x\n",
+			device.bus,
+			device.device,
+			device.function,
+			vendor_id,
+			class_code,
+			device.header_type);
+	}
 
 	draw_mouse(*pixel_writer, 200, 100);
 

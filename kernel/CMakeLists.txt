@@ -12,6 +12,7 @@ add_executable(kernel.elf
 	font.cpp
 	newlib_support.cpp
 	console.cpp
+	pci.cpp
 	utils.cpp
 )
 
@@ -62,3 +63,6 @@ set_property(TARGET shinonome_font_bin PROPERTY IMPORTED_OBJECTS "${CMAKE_CURREN
 
 target_link_libraries(kernel.elf PUBLIC shinonome_font_bin)
 target_link_libraries(kernel.elf PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../stdlib/build/lib/libc.a")
+
+add_subdirectory(asmfunc)
+target_link_libraries(kernel.elf PUBLIC asmfunc)
