@@ -6,31 +6,13 @@
 #include "font.hpp"
 #include "frame_buffer_config.hpp"
 #include "graphics.hpp"
+#include "utils.hpp"
 
 void* operator new(std::size_t, void* buf) {
 	return buf;
 }
 
 void operator delete(void*) noexcept {}
-
-Console* console;
-
-template <typename... Args>
-int printk(const char* format, Args... args) {
-	char buf[1024];
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wformat-security"
-	auto result = std::snprintf(buf, sizeof(buf), format, args...);
-#pragma clang diagnostic pop
-
-	if (result < 0) {
-		return result;
-	}
-
-	console->put_string(buf);
-	return result;
-}
 
 namespace {
 	const int mouse_cursor_width = 15;
@@ -89,7 +71,7 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 	const PixelColor desktop_fg_color{0xc8, 0xc8, 0xc6};
 	const PixelColor desktop_bg_color{0x1d, 0x1f, 0x21};
 	Console console_instance(*pixel_writer, desktop_fg_color, desktop_bg_color);
-	console = &console_instance;
+	global_console = &console_instance;
 
 	const int frame_width = frame_buffer_config.horizontal_resolution;
 	const int frame_height = frame_buffer_config.vertical_resolution;

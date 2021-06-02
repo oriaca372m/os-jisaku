@@ -22,3 +22,5 @@ private:
 	int cursor_row_;
 	int cursor_column_;
 };
+
+inline Console* global_console;
