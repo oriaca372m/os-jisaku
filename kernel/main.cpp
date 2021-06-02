@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <cstdio>
 
+#include "console.hpp"
 #include "font.hpp"
 #include "frame_buffer_config.hpp"
 #include "graphics.hpp"
@@ -22,23 +23,20 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 		new (pixel_writer_buf) BGRResv8BitPerColorPixelWriter(frame_buffer_config);
 	}
 
-	for (int x = 0; x < frame_buffer_config.horizontal_resolution; ++x) {
-		for (int y = 0; y < frame_buffer_config.vertical_resolution; ++y) {
-			pixel_writer->write(x, y, {0xFF, 0xFF, 0xFF});
+	Console console(*pixel_writer, {0xc8, 0xc8, 0xc6}, {0x1d, 0x1f, 0x21});
+
+	console.put_string(u8"chino chan kawaii!\n");
+	console.put_string(u8"gochuumon wa usagi desu ka?\n");
+
+	for (int i = 0; i < 100; i++) {
+		char buf[128];
+		std::snprintf(buf, sizeof(buf), "i = %d", i);
+		console.put_string(buf);
+		console.put_string(u8"chino chan kawaii!");
+
+		for (volatile int j = 0; j < 100000000; j++) {
 		}
 	}
-
-	for (int x = 0; x < 200; ++x) {
-		for (int y = 0; y < 100; ++y) {
-			pixel_writer->write(x, y, {0x0, 0xFF, 0x0});
-		}
-	}
-	write_string(*pixel_writer, 30, 30, u8"chino chan kawaii!", {0x0, 0x0, 0x0});
-	write_string(*pixel_writer, 30, 60, u8"gochuumon wa usagi desu ka?", {0x0, 0x0, 0x0});
-
-	char buf[128];
-	std::snprintf(buf, sizeof(buf), "1 + 2 = %d", 1 + 2);
-	write_string(*pixel_writer, 30, 90, buf, {0x0, 0x0, 0x0});
 
 	while (true) {
 		__asm("hlt");

@@ -11,6 +11,7 @@ add_executable(kernel.elf
 	graphics.cpp
 	font.cpp
 	newlib_support.cpp
+	console.cpp
 )
 
 target_include_directories(kernel.elf PUBLIC
