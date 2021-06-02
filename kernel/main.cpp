@@ -83,7 +83,7 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 	printk(u8"gochuumon wa usagi desu ka?\n");
 
 	auto err = pci::scan_all_bus();
-	printk("scan_all_bus: %d\n", err);
+	printk("scan_all_bus: %s\n", err.name());
 
 	for (int i = 0; i < pci::num_devices; ++i) {
 		const auto& device = pci::devices[i];

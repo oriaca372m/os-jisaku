@@ -45,17 +45,17 @@ namespace pci {
 		return (header_type & 0b1000'0000u) == 0;
 	}
 
-	int add_device(std::uint8_t bus, std::uint8_t device, std::uint8_t function, std::uint8_t header_type) {
+	Error add_device(std::uint8_t bus, std::uint8_t device, std::uint8_t function, std::uint8_t header_type) {
 		if (num_devices == devices.size()) {
-			return 1;
+			return Error::Code::Full;
 		}
 
 		devices[num_devices] = Device{bus, device, function, header_type};
 		++num_devices;
-		return 0;
+		return Error::Code::Success;
 	}
 
-	int scan_function(std::uint8_t bus, std::uint8_t device, std::uint8_t function) {
+	Error scan_function(std::uint8_t bus, std::uint8_t device, std::uint8_t function) {
 		auto header_type = read_header_type(bus, device, function);
 		if (auto err = add_device(bus, device, function, header_type)) {
 			return err;
@@ -71,16 +71,16 @@ namespace pci {
 			return scan_bus(secondary_bus);
 		}
 
-		return 0;
+		return Error::Code::Success;
 	}
 
-	int scan_device(std::uint8_t bus, std::uint8_t device) {
+	Error scan_device(std::uint8_t bus, std::uint8_t device) {
 		if (auto err = scan_function(bus, device, 0)) {
 			return err;
 		}
 
 		if (is_single_function_device(read_header_type(bus, device, 0))) {
-			return 0;
+			return Error::Code::Success;
 		}
 
 		for (std::uint8_t function = 1; function < 8; ++function) {
@@ -93,10 +93,10 @@ namespace pci {
 			}
 		}
 
-		return 0;
+		return Error::Code::Success;
 	}
 
-	int scan_bus(std::uint8_t bus) {
+	Error scan_bus(std::uint8_t bus) {
 		for (std::uint8_t device = 0; device < 32; ++device) {
 			if (read_vendor_id(bus, device, 0) == 0xffffu) {
 				continue;
@@ -107,15 +107,14 @@ namespace pci {
 			}
 		}
 
-		return 0;
+		return Error::Code::Success;
 	}
 
-	int scan_all_bus() {
+	Error scan_all_bus() {
 		num_devices = 0;
 
 		auto header_type = read_header_type(0, 0, 0);
 		if (is_single_function_device(header_type)) {
-			printk(u8"single function device!\n");
 			return scan_bus(0);
 		}
 
@@ -129,6 +128,6 @@ namespace pci {
 			}
 		}
 
-		return 0;
+		return Error::Code::Success;
 	}
 }
