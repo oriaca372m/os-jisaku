@@ -1,3 +1,4 @@
-qemu-workdir/
-build-kernel/
-compile_flags.txt
+/qemu-workdir/
+/build-kernel/
+/stdlib/build/
+/MikanLoaderPkg/compile_flags.txt
