@@ -6,11 +6,16 @@ set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
 set(CMAKE_C_LINK_EXECUTABLE "/usr/bin/ld.lld <LINK_FLAGS> <OBJECTS> <LINK_LIBRARIES> -o <TARGET>")
 set(CMAKE_CXX_LINK_EXECUTABLE "/usr/bin/ld.lld <LINK_FLAGS> <OBJECTS> <LINK_LIBRARIES> -o <TARGET>")
 
-add_executable(kernel.elf main.cpp graphics.cpp font.cpp)
+add_executable(kernel.elf
+	main.cpp
+	graphics.cpp
+	font.cpp
+	newlib_support.cpp
+)
 
 target_include_directories(kernel.elf PUBLIC
-	"${CMAKE_CURRENT_SOURCE_DIR}/../stdlib/build/include"
 	"${CMAKE_CURRENT_SOURCE_DIR}/../stdlib/build/include/c++/v1"
+	"${CMAKE_CURRENT_SOURCE_DIR}/../stdlib/build/include"
 )
 target_compile_definitions(kernel.elf PUBLIC __ELF__ _LDBL_EQ_DBL _GNU_SOURCE _POSIX_TIMERS)
 
@@ -54,3 +59,4 @@ add_library(shinonome_font_bin OBJECT IMPORTED)
 set_property(TARGET shinonome_font_bin PROPERTY IMPORTED_OBJECTS "${CMAKE_CURRENT_BINARY_DIR}/hankaku.o")
 
 target_link_libraries(kernel.elf PUBLIC shinonome_font_bin)
+target_link_libraries(kernel.elf PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../stdlib/build/lib/libc.a")

@@ -1,5 +1,6 @@
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 
 #include "font.hpp"
 #include "frame_buffer_config.hpp"
@@ -32,9 +33,12 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 			pixel_writer->write(x, y, {0x0, 0xFF, 0x0});
 		}
 	}
-
 	write_string(*pixel_writer, 30, 30, u8"chino chan kawaii!", {0x0, 0x0, 0x0});
 	write_string(*pixel_writer, 30, 60, u8"gochuumon wa usagi desu ka?", {0x0, 0x0, 0x0});
+
+	char buf[128];
+	std::snprintf(buf, sizeof(buf), "1 + 2 = %d", 1 + 2);
+	write_string(*pixel_writer, 30, 90, buf, {0x0, 0x0, 0x0});
 
 	while (true) {
 		__asm("hlt");
