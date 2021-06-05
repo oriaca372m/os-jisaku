@@ -3,19 +3,31 @@
 #include <cstddef>
 #include <cstdio>
 
-#include <kernel_interface/main.hpp>
-
-namespace {
-	LogLevel log_level = kDebug;
-}
+#include <kernel_interface/logger.hpp>
 
 namespace usb::logger {
-	void SetLogLevel(LogLevel level) {
-		log_level = level;
-	}
-
 	int Log(LogLevel level, const char* format, ...) {
-		if (level > log_level) {
+		using KLogLevel = kernel_interface::logger::LogLevel;
+		KLogLevel k_log_level;
+
+		switch (level) {
+		case LogLevel::kError:
+			k_log_level = KLogLevel::Error;
+			break;
+		case LogLevel::kWarn:
+			k_log_level = KLogLevel::Warn;
+			break;
+		case LogLevel::kInfo:
+			k_log_level = KLogLevel::Info;
+			break;
+		case LogLevel::kDebug:
+			k_log_level = KLogLevel::Debug;
+			break;
+		default:
+			return 1;
+		}
+
+		if (!kernel_interface::logger::default_logger->will_be_logged(k_log_level)) {
 			return 0;
 		}
 
@@ -27,7 +39,7 @@ namespace usb::logger {
 		result = vsprintf(s, format, ap);
 		va_end(ap);
 
-		kernel_interface::put_string(s);
+		kernel_interface::logger::default_logger->log(k_log_level, s);
 		return result;
 	}
 }

@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <new>
 
+#include <kernel_interface/logger.hpp>
 #include <usb/classdriver/mouse.hpp>
 #include <usb/device.hpp>
 #include <usb/memory.hpp>
@@ -13,20 +14,9 @@
 #include "font.hpp"
 #include "frame_buffer_config.hpp"
 #include "graphics.hpp"
+#include "logger.hpp"
 #include "pci.hpp"
 #include "utils.hpp"
-
-enum LogLevel {
-	kError = 3,
-	kWarn = 4,
-	kInfo = 6,
-	kDebug = 7,
-};
-
-int Log(LogLevel level, const char* format, ...) {
-	printk("log");
-	return 0;
-}
 
 void* operator new(std::size_t) {
 	printk("bad new call!");
@@ -107,6 +97,11 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 	Console console_instance(*pixel_writer, desktop_fg_color, desktop_bg_color);
 	global_console = &console_instance;
 
+	auto console_logger = logger::ConsoleLogger(console_instance, logger::LogLevel::Info);
+	auto logger_proxy = logger::LoggerProxy(console_logger);
+	kernel_interface::logger::default_logger = &console_logger;
+	log = &logger_proxy;
+
 	const int frame_width = frame_buffer_config.horizontal_resolution;
 	const int frame_height = frame_buffer_config.vertical_resolution;
 
@@ -119,7 +114,7 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 	printk(u8"gochuumon wa usagi desu ka?\n");
 
 	auto err = pci::scan_all_bus();
-	printk("scan_all_bus: %s\n", err.name());
+	log->debug("scan_all_bus: %s\n", err.name());
 
 	pci::Device* xhc_device = nullptr;
 	for (int i = 0; i < pci::num_devices; ++i) {
@@ -132,30 +127,30 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 	}
 
 	if (xhc_device != nullptr) {
-		printk("xHC has been found: %d.%d.%d\n", xhc_device->bus, xhc_device->device, xhc_device->function);
+		log->info("xHC has been found: %d.%d.%d\n", xhc_device->bus, xhc_device->device, xhc_device->function);
 
 		const auto xhc_bar = pci::read_bar(*xhc_device, 0);
 		const std::uint64_t xhc_mmio_base = xhc_bar & ~static_cast<std::uint64_t>(0xf);
-		printk("xHC mmio_base = %08lx\n", xhc_mmio_base);
+		log->debug("xHC mmio_base = %08lx\n", xhc_mmio_base);
 
 		usb::xhci::Controller xhc(xhc_mmio_base);
 
 		{
 			auto err = xhc.Initialize();
-			printk("xhc.Initialize(): %s\n", err.Name());
+			log->debug("xhc.Initialize(): %s\n", err.Name());
 		}
 
-		printk("xHC starting\n");
+		log->info("xHC starting\n");
 		xhc.Run();
 
 		usb::HIDMouseDriver::default_observer = mouse_observer;
 		for (int i = 1; i <= xhc.MaxPorts(); ++i) {
 			auto port = xhc.PortAt(i);
-			printk("port %d: IsConnected=%d\n", i, port.IsConnected());
+			log->debug("port %d: IsConnected=%d\n", i, port.IsConnected());
 
 			if (port.IsConnected()) {
 				if (auto err = usb::xhci::ConfigurePort(xhc, port)) {
-					printk("Failed to configure port: %s at %s:%d\n", err.Name(), err.File(), err.Line());
+					log->error("Failed to configure port: %s at %s:%d\n", err.Name(), err.File(), err.Line());
 					continue;
 				}
 			}
@@ -163,7 +158,7 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 
 		while (true) {
 			if (auto err = usb::xhci::ProcessEvent(xhc)) {
-				printk("Error while ProcessEvent: %s at %s:%d\n", err.Name(), err.File(), err.Line());
+				log->error("Error while ProcessEvent: %s at %s:%d\n", err.Name(), err.File(), err.Line());
 			}
 		}
 	}

@@ -15,6 +15,7 @@ add_executable(kernel.elf
 	pci.cpp
 	utils.cpp
 	kernel_interface_impl.cpp
+	logger.cpp
 )
 
 target_include_directories(kernel.elf PUBLIC
