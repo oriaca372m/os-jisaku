@@ -16,6 +16,7 @@ add_executable(kernel.elf
 	utils.cpp
 	kernel_interface_impl.cpp
 	logger.cpp
+	mouse.cpp
 )
 
 target_include_directories(kernel.elf PUBLIC

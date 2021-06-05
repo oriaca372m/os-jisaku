@@ -13,55 +13,16 @@
 #include "frame_buffer_config.hpp"
 #include "graphics.hpp"
 #include "logger.hpp"
+#include "mouse.hpp"
 #include "pci.hpp"
 #include "utils.hpp"
 
 namespace {
-	const int mouse_cursor_width = 15;
-	const int mouse_cursor_height = 24;
-	const char mouse_cursor_shape[mouse_cursor_height][mouse_cursor_width + 1] = {
-		u8"@              ", // keep shape
-		u8"@@             ", // keep shape
-		u8"@.@            ", // keep shape
-		u8"@..@           ", // keep shape
-		u8"@...@          ", // keep shape
-		u8"@....@         ", // keep shape
-		u8"@.....@        ", // keep shape
-		u8"@......@       ", // keep shape
-		u8"@.......@      ", // keep shape
-		u8"@........@     ", // keep shape
-		u8"@.........@    ", // keep shape
-		u8"@..........@   ", // keep shape
-		u8"@...........@  ", // keep shape
-		u8"@............@ ", // keep shape
-		u8"@......@@@@@@@@", // keep shape
-		u8"@......@       ", // keep shape
-		u8"@....@@.@      ", // keep shape
-		u8"@...@ @.@      ", // keep shape
-		u8"@..@   @.@     ", // keep shape
-		u8"@.@    @.@     ", // keep shape
-		u8"@@      @.@    ", // keep shape
-		u8"@       @.@    ", // keep shape
-		u8"         @.@   ", // keep shape
-		u8"         @@@   ", // keep shape
-	};
+	MouseCursor* mouse_cursor;
 
-	void draw_mouse(PixelWriter& writer, int x, int y) {
-		for (int dy = 0; dy < mouse_cursor_height; ++dy) {
-			for (int dx = 0; dx < mouse_cursor_width; ++dx) {
-				auto c = mouse_cursor_shape[dy][dx];
-				if (c == '@') {
-					writer.write(x + dx, y + dy, {0x00, 0x00, 0x00});
-				} else if (c == '.') {
-					writer.write(x + dx, y + dy, {0xFF, 0xFF, 0xFF});
-				}
-			}
-		}
+	void mouse_observer(int8_t displacement_x, int8_t displacement_y) {
+		mouse_cursor->move_relative({displacement_x, displacement_y});
 	}
-}
-
-void mouse_observer(int8_t displacement_x, int8_t displacement_y) {
-	printk(u8"mouse: x: %d, y: %d\n", displacement_x, displacement_y);
 }
 
 extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
@@ -83,6 +44,9 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 	auto logger_proxy = logger::LoggerProxy(console_logger);
 	kernel_interface::logger::default_logger = &console_logger;
 	log = &logger_proxy;
+
+	MouseCursor mouse_cursor_instance(pixel_writer, desktop_bg_color, {200, 100});
+	mouse_cursor = &mouse_cursor_instance;
 
 	const int frame_width = frame_buffer_config.horizontal_resolution;
 	const int frame_height = frame_buffer_config.vertical_resolution;
@@ -146,8 +110,6 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 			}
 		}
 	}
-
-	draw_mouse(*pixel_writer, 200, 100);
 
 	while (true) {
 		__asm("hlt");
