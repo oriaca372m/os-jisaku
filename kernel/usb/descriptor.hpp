@@ -1,8 +1,6 @@
-/**
- * @file usb/descriptor.hpp
- *
- * USB Descriptor の定義集．
- */
+//! @file usb/descriptor.hpp
+//!
+//! USB Descriptor の定義集．
 
 #pragma once
 
@@ -98,16 +96,15 @@ namespace usb {
 			uint16_t descriptor_length;
 		} __attribute__((packed));
 
-		/** @brief HID 特有のディスクリプタに関する情報を得る．
-     *
-     * HID はクラス特有（class-specific）のディスクリプタを 1 つ以上持つ．
-     * その数は num_descriptors に記載されている．
-     * Report ディスクリプタ（type = 34）は HID デバイスであれば必ず存在するため，
-     * num_descriptors は必ず 1 以上となる．
-     *
-     * @param index  取得するディスクリプタの番号．0 <= index < num_descriptors.
-     * @return index で指定されたディスクリプタの情報．index が範囲外なら nullptr.
-     */
+		//! @brief HID 特有のディスクリプタに関する情報を得る．
+		//!
+		//! HID はクラス特有（class-specific）のディスクリプタを 1 つ以上持つ．
+		//! その数は num_descriptors に記載されている．
+		//! Report ディスクリプタ（type = 34）は HID デバイスであれば必ず存在するため，
+		//! num_descriptors は必ず 1 以上となる．
+		//!
+		//! @param index  取得するディスクリプタの番号．0 <= index < num_descriptors.
+		//! @return index で指定されたディスクリプタの情報．index が範囲外なら nullptr.
 		ClassDescriptor* GetClassDescriptor(size_t index) const {
 			if (index >= num_descriptors) {
 				return nullptr;

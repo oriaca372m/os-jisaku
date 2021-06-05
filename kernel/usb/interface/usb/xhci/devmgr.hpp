@@ -1,8 +1,6 @@
-/**
- * @file usb/xhci/devmgr.hpp
- *
- * USB デバイスの管理機能．
- */
+//! @file usb/xhci/devmgr.hpp
+//!
+//! USB デバイスの管理機能．
 
 #pragma once
 

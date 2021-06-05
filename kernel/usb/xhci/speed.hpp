@@ -1,8 +1,6 @@
-/**
- * @file usb/xhci/speed.hpp
- *
- * Protocol Speed ID のデフォルト定義．PSIC == 0 のときのみ有効．
- */
+//! @file usb/xhci/speed.hpp
+//!
+//! Protocol Speed ID のデフォルト定義．PSIC == 0 のときのみ有効．
 
 #pragma once
 

@@ -1,8 +1,6 @@
-/**
- * @file usb/classdriver/hid.hpp
- *
- * HID base class driver.
- */
+//! @file usb/classdriver/hid.hpp
+//!
+//! HID base class driver.
 
 #pragma once
 

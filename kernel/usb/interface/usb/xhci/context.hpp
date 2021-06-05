@@ -101,20 +101,18 @@ namespace usb::xhci {
 		SlotContext slot_context;
 		EndpointContext ep_contexts[31];
 
-		/** @brief Enable the slot context.
-     *
-     * @return Pointer to the slot context enabled.
-     */
+		//! @brief Enable the slot context.
+		//!
+		//! @return Pointer to the slot context enabled.
 		SlotContext* EnableSlotContext() {
 			input_control_context.add_context_flags |= 1;
 			return &slot_context;
 		}
 
-		/** @brief Enable an endpoint.
-     *
-     * @param dci Device Context Index (1 .. 31)
-     * @return Pointer to the endpoint context enabled.
-     */
+		//! @brief Enable an endpoint.
+		//!
+		//! @param dci Device Context Index (1 .. 31)
+		//! @return Pointer to the endpoint context enabled.
 		EndpointContext* EnableEndpoint(DeviceContextIndex dci) {
 			input_control_context.add_context_flags |= 1u << dci.value;
 			return &ep_contexts[dci.value - 1];

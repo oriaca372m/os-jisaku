@@ -1,8 +1,6 @@
-/**
- * @file usb/xhci/registers.hpp
- *
- * xHCI のレジスタ定義．
- */
+//! @file usb/xhci/registers.hpp
+//!
+//! xHCI のレジスタ定義．
 
 #pragma once
 
@@ -374,7 +372,7 @@ namespace usb::xhci {
 
 	using DoorbellRegisterArray = ArrayWrapper<DoorbellRegister>;
 
-	/** @brief 拡張レジスタの共通ヘッダ構造 */
+	//! @brief 拡張レジスタの共通ヘッダ構造
 	union ExtendedRegister_Bitmap {
 		uint32_t data[1];
 		struct {

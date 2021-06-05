@@ -1,8 +1,6 @@
-/**
- * @file usb/device.hpp
- *
- * USB デバイスを表すクラスと関連機能．
- */
+//! @file usb/device.hpp
+//!
+//! USB デバイスを表すクラスと関連機能．
 
 #pragma once
 
@@ -45,11 +43,10 @@ namespace usb {
 		Error OnInterruptCompleted(EndpointID ep_id, const void* buf, int len);
 
 	private:
-		/** @brief エンドポイントに割り当て済みのクラスドライバ．
-     *
-     * 添字はエンドポイント番号（0 - 15）．
-     * 添字 0 はどのクラスドライバからも使われないため，常に未使用．
-     */
+		//! @brief エンドポイントに割り当て済みのクラスドライバ．
+		//!
+		//! 添字はエンドポイント番号（0 - 15）．
+		//! 添字 0 はどのクラスドライバからも使われないため，常に未使用．
 		std::array<ClassDriver*, 16> class_drivers_{};
 
 		std::array<uint8_t, 256> buf_{};
@@ -71,9 +68,8 @@ namespace usb {
 		Error InitializePhase3(uint8_t config_value);
 		Error InitializePhase4();
 
-		/** OnControlCompleted の中で要求の発行元を特定するためのマップ構造．
-     * ControlOut または ControlIn を発行したときに発行元が登録される．
-     */
+		//! OnControlCompleted の中で要求の発行元を特定するためのマップ構造．
+		//! ControlOut または ControlIn を発行したときに発行元が登録される．
 		ArrayMap<SetupData, ClassDriver*, 4> event_waiters_{};
 	};
 

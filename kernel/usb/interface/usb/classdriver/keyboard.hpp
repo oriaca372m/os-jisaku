@@ -1,8 +1,6 @@
-/**
- * @file usb/classdriver/keyboard.hpp
- *
- * HID keyboard class driver.
- */
+//! @file usb/classdriver/keyboard.hpp
+//!
+//! HID keyboard class driver.
 
 #pragma once
 

@@ -1,8 +1,6 @@
-/**
- * @file usb/endpoint.hpp
- *
- * エンドポイント設定に関する機能．
- */
+//! @file usb/endpoint.hpp
+//!
+//! エンドポイント設定に関する機能．
 
 #pragma once
 
@@ -22,11 +20,10 @@ namespace usb {
 		constexpr EndpointID(const EndpointID& ep_id) : addr_{ep_id.addr_} {}
 		explicit constexpr EndpointID(int addr) : addr_{addr} {}
 
-		/** エンドポイント番号と入出力方向から ID を構成する．
-     *
-     * ep_num は 0..15 の整数．
-     * dir_in は Control エンドポイントでは常に true にしなければならない．
-     */
+		//! エンドポイント番号と入出力方向から ID を構成する．
+		//!
+		//! ep_num は 0..15 の整数．
+		//! dir_in は Control エンドポイントでは常に true にしなければならない．
 		constexpr EndpointID(int ep_num, bool dir_in) : addr_{ep_num << 1 | dir_in} {}
 
 		EndpointID& operator=(const EndpointID& rhs) {
@@ -34,17 +31,17 @@ namespace usb {
 			return *this;
 		}
 
-		/** エンドポイントアドレス（0..31） */
+		//! エンドポイントアドレス（0..31）
 		int Address() const {
 			return addr_;
 		}
 
-		/** エンドポイント番号（0..15） */
+		//! エンドポイント番号（0..15）
 		int Number() const {
 			return addr_ >> 1;
 		}
 
-		/** 入出力方向．Control エンドポイントは true */
+		//! 入出力方向．Control エンドポイントは true
 		bool IsIn() const {
 			return addr_ & 1;
 		}
@@ -56,16 +53,16 @@ namespace usb {
 	constexpr EndpointID kDefaultControlPipeID{0, true};
 
 	struct EndpointConfig {
-		/** エンドポイント ID */
+		//! エンドポイント ID
 		EndpointID ep_id;
 
-		/** このエンドポイントの種別 */
+		//! このエンドポイントの種別
 		EndpointType ep_type;
 
-		/** このエンドポイントの最大パケットサイズ（バイト） */
+		//! このエンドポイントの最大パケットサイズ（バイト）
 		int max_packet_size;
 
-		/** このエンドポイントの制御周期（125*2^(interval-1) マイクロ秒） */
+		//! このエンドポイントの制御周期（125*2^(interval-1) マイクロ秒）
 		int interval;
 	};
 }

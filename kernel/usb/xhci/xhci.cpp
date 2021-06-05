@@ -31,17 +31,15 @@ namespace {
 		kConfiguringEndpoints,
 		kConfigured,
 	};
-	/* root hub port はリセット処理をしてからアドレスを割り当てるまでは
-   * 他の処理を挟まず，そのポートについての処理だけをしなければならない．
-   * kWaitingAddressed はリセット（kResettingPort）からアドレス割り当て
-   * （kAddressingDevice）までの一連の処理の実行を待っている状態．
-   */
+	//! root hub port はリセット処理をしてからアドレスを割り当てるまでは
+	//! 他の処理を挟まず，そのポートについての処理だけをしなければならない．
+	//! kWaitingAddressed はリセット（kResettingPort）からアドレス割り当て
+	//! （kAddressingDevice）までの一連の処理の実行を待っている状態．
 
 	std::array<volatile ConfigPhase, 256> port_config_phase{}; // index: port number
 
-	/** kResettingPort から kAddressingDevice までの処理を実行中のポート番号．
-   * 0 ならその状態のポートがないことを示す．
-   */
+	//! kResettingPort から kAddressingDevice までの処理を実行中のポート番号．
+	//! 0 ならその状態のポートがないことを示す．
 	uint8_t addressing_port{0};
 
 	void InitializeSlotContext(SlotContext& ctx, Port& port) {
@@ -428,15 +426,15 @@ namespace usb::xhci {
 			return USB_MAKE_ERROR(Error::kUnknownXHCISpeedID);
 		}
 
-		auto convert_interval{
-      (port_speed == kFullSpeed || port_speed == kLowSpeed)
-      ? [](EndpointType type, int interval) { // for FS, LS
-        if (type == EndpointType::kIsochronous) return interval + 2;
-        else return MostSignificantBit(interval) + 3;
-      }
-      : [](EndpointType type, int interval) { // for HS, SS, SSP
-        return interval - 1;
-      }};
+		auto convert_interval =
+			(port_speed == kFullSpeed || port_speed == kLowSpeed)
+				? [](EndpointType type, int interval) { // for FS, LS
+					if (type == EndpointType::kIsochronous) return interval + 2;
+					else return MostSignificantBit(interval) + 3;
+				}
+				: [](EndpointType type, int interval) { // for HS, SS, SSP
+					return interval - 1;
+				};
 
 		for (int i = 0; i < len; ++i) {
 			const DeviceContextIndex ep_dci{configs[i].ep_id};

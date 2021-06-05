@@ -1,8 +1,6 @@
-/**
- * @file usb/xhci/port.hpp
- *
- * xHCI の各ポートを表すクラスと周辺機能．
- */
+//! @file usb/xhci/port.hpp
+//!
+//! xHCI の各ポートを表すクラスと周辺機能．
 
 #pragma once
 

@@ -1,8 +1,6 @@
-/**
- * @file usb/xhci/device.hpp
- *
- * USB デバイスを表すクラスと関連機能．
- */
+//! @file usb/xhci/device.hpp
+//!
+//! USB デバイスを表すクラスと関連機能．
 
 #pragma once
 
@@ -65,9 +63,8 @@ namespace usb::xhci {
 		enum State state_;
 		std::array<Ring*, 31> transfer_rings_; // index = dci - 1
 
-		/** コントロール転送が完了した際に DataStageTRB や StatusStageTRB
-     * から対応する SetupStageTRB を検索するためのマップ．
-     */
+		//! コントロール転送が完了した際に DataStageTRB や StatusStageTRB
+		//! から対応する SetupStageTRB を検索するためのマップ．
 		ArrayMap<const void*, const SetupStageTRB*, 16> setup_stage_map_{};
 
 		//usb::Device* usb_device_;

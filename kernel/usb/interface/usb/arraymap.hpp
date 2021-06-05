@@ -1,8 +1,6 @@
-/**
- * @file usb/arraymap.hpp
- *
- * 固定長配列を用いた簡易なマップ実装．
- */
+//! @file usb/arraymap.hpp
+//!
+//! 固定長配列を用いた簡易なマップ実装．
 
 #pragma once
 

@@ -1,8 +1,6 @@
-/**
- * @file usb/xhci/trb.hpp
- *
- * Transfer Request Block 関連．
- */
+//! @file usb/xhci/trb.hpp
+//!
+//! Transfer Request Block 関連．
 
 #pragma once
 
@@ -443,12 +441,11 @@ namespace usb::xhci {
 		}
 	};
 
-	/** @brief TRBDynamicCast casts a trb pointer to other type of TRB.
-   *
-   * @param trb  source pointer
-   * @return  casted pointer if the source TRB's type is equal to the resulting
-   *  type. nullptr otherwise.
-   */
+	//! @brief TRBDynamicCast casts a trb pointer to other type of TRB.
+	//!
+	//! @param trb  source pointer
+	//! @return  casted pointer if the source TRB's type is equal to the resulting
+	//!  type. nullptr otherwise.
 	template <class ToType, class FromType>
 	ToType* TRBDynamicCast(FromType* trb) {
 		if (ToType::Type == trb->bits.trb_type) {

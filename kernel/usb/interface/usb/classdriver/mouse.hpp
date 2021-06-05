@@ -1,8 +1,6 @@
-/**
- * @file usb/classdriver/mouse.hpp
- *
- * HID mouse class driver.
- */
+//! @file usb/classdriver/mouse.hpp
+//!
+//! HID mouse class driver.
 
 #pragma once
 

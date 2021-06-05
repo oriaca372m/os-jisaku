@@ -1,8 +1,6 @@
-/**
- * @file register.hpp
- *
- * メモリマップトレジスタを読み書きする機能を提供する．
- */
+//! @file register.hpp
+//!
+//! メモリマップトレジスタを読み書きする機能を提供する．
 
 #pragma once
 
@@ -17,13 +15,11 @@ struct ArrayLength<T[N]> {
 	static const size_t value = N;
 };
 
-/**
- * MemMapRegister is a wrapper for a memory mapped register.
- *
- * MemMapRegister forces user program to read/write the underlying register
- * with specific bit width. The bit width will be deduced from the type of
- * T::data. T is the template parameter. T::data should be an array.
- */
+//! MemMapRegister is a wrapper for a memory mapped register.
+//!
+//! MemMapRegister forces user program to read/write the underlying register
+//! with specific bit width. The bit width will be deduced from the type of
+//! T::data. T is the template parameter. T::data should be an array.
 template <typename T>
 class MemMapRegister {
 public:
@@ -58,18 +54,16 @@ struct DefaultBitmap {
 	}
 };
 
-/*
- * Design: container-like classes.
- *
- * Container-like classes, such as PortArray and DeviceContextArray,
- * should have Size() method and Iterator type.
- * Size() should return the number of elements, and iterators
- * of that type should iterate all elements.
- *
- * Each element may have a flag indicating availableness of the element.
- * For example each port has "Port Enabled/Disabled" bit.
- * Size() and iterators should not skip disabled elements.
- */
+//! Design: container-like classes.
+//!
+//! Container-like classes, such as PortArray and DeviceContextArray,
+//! should have Size() method and Iterator type.
+//! Size() should return the number of elements, and iterators
+//! of that type should iterate all elements.
+//!
+//! Each element may have a flag indicating availableness of the element.
+//! For example each port has "Port Enabled/Disabled" bit.
+//! Size() and iterators should not skip disabled elements.
 
 template <typename T>
 class ArrayWrapper {
