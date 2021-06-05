@@ -1,7 +1,5 @@
-#include <cstddef>
 #include <cstdint>
 #include <cstdio>
-#include <new>
 
 #include <kernel_interface/logger.hpp>
 #include <usb/classdriver/mouse.hpp>
@@ -17,22 +15,6 @@
 #include "logger.hpp"
 #include "pci.hpp"
 #include "utils.hpp"
-
-void* operator new(std::size_t) {
-	printk("bad new call!");
-	while (true) {
-		__asm("hlt");
-	}
-}
-
-void operator delete(void*) noexcept {}
-void operator delete(void*, std::align_val_t) noexcept {}
-
-extern "C" void __cxa_pure_virtual() {
-	while (true) {
-		__asm("hlt");
-	}
-}
 
 namespace {
 	const int mouse_cursor_width = 15;

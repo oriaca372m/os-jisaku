@@ -10,7 +10,7 @@ add_executable(kernel.elf
 	main.cpp
 	graphics.cpp
 	font.cpp
-	newlib_support.cpp
+	support_functions.cpp
 	console.cpp
 	pci.cpp
 	utils.cpp
