@@ -16,6 +16,18 @@
 #include "pci.hpp"
 #include "utils.hpp"
 
+enum LogLevel {
+	kError = 3,
+	kWarn = 4,
+	kInfo = 6,
+	kDebug = 7,
+};
+
+int Log(LogLevel level, const char* format, ...) {
+	printk("log");
+	return 0;
+}
+
 void* operator new(std::size_t) {
 	printk("bad new call!");
 	while (true) {
