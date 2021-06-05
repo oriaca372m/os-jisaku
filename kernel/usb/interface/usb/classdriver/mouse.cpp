@@ -1,7 +1,7 @@
 #include "usb/classdriver/mouse.hpp"
 
+#include "logger.hpp"
 #include "usb/device.hpp"
-#include "usb/logger.hpp"
 #include "usb/memory.hpp"
 #include <algorithm>
 

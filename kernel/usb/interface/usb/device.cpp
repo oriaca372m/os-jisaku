@@ -6,7 +6,7 @@
 #include "usb/descriptor.hpp"
 #include "usb/setupdata.hpp"
 
-#include "usb/logger.hpp"
+#include "logger.hpp"
 
 namespace {
 	class ConfigurationDescriptorReader {

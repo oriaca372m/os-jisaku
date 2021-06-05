@@ -6,27 +6,28 @@ set(CMAKE_C_LINK_EXECUTABLE "/usr/bin/ld.lld <LINK_FLAGS> <OBJECTS> <LINK_LIBRAR
 set(CMAKE_CXX_LINK_EXECUTABLE "/usr/bin/ld.lld <LINK_FLAGS> <OBJECTS> <LINK_LIBRARIES> -o <TARGET>")
 
 add_library(usb STATIC
-	usb/classdriver/base.cpp
-	usb/classdriver/hid.cpp
-	usb/classdriver/keyboard.cpp
-	usb/classdriver/mouse.cpp
-	usb/xhci/device.cpp
-	usb/xhci/devmgr.cpp
-	usb/xhci/port.cpp
-	usb/xhci/registers.cpp
-	usb/xhci/ring.cpp
-	usb/xhci/trb.cpp
-	usb/xhci/xhci.cpp
-	usb/device.cpp
-	usb/memory.cpp
-	usb/logger.cpp
+	interface/usb/classdriver/base.cpp
+	interface/usb/classdriver/hid.cpp
+	interface/usb/classdriver/keyboard.cpp
+	interface/usb/classdriver/mouse.cpp
+	interface/usb/xhci/device.cpp
+	interface/usb/xhci/devmgr.cpp
+	interface/usb/xhci/port.cpp
+	interface/usb/xhci/registers.cpp
+	interface/usb/xhci/ring.cpp
+	interface/usb/xhci/trb.cpp
+	interface/usb/xhci/xhci.cpp
+	interface/usb/device.cpp
+	interface/usb/memory.cpp
+	logger.cpp
 )
 
 target_include_directories(usb PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}/../../stdlib/build/include/c++/v1"
 	"${CMAKE_CURRENT_SOURCE_DIR}/../../stdlib/build/include"
-	"${CMAKE_CURRENT_SOURCE_DIR}/"
+	"${CMAKE_CURRENT_SOURCE_DIR}/interface"
 )
+target_include_directories(usb PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 target_compile_definitions(usb PUBLIC __ELF__ _LDBL_EQ_DBL _GNU_SOURCE _POSIX_TIMERS)
 
 set_property(TARGET usb PROPERTY CXX_STANDARD 17)
