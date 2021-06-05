@@ -20,30 +20,30 @@ namespace {
 	const int mouse_cursor_width = 15;
 	const int mouse_cursor_height = 24;
 	const char mouse_cursor_shape[mouse_cursor_height][mouse_cursor_width + 1] = {
-		"@              ", // keep shape
-		"@@             ", // keep shape
-		"@.@            ", // keep shape
-		"@..@           ", // keep shape
-		"@...@          ", // keep shape
-		"@....@         ", // keep shape
-		"@.....@        ", // keep shape
-		"@......@       ", // keep shape
-		"@.......@      ", // keep shape
-		"@........@     ", // keep shape
-		"@.........@    ", // keep shape
-		"@..........@   ", // keep shape
-		"@...........@  ", // keep shape
-		"@............@ ", // keep shape
-		"@......@@@@@@@@", // keep shape
-		"@......@       ", // keep shape
-		"@....@@.@      ", // keep shape
-		"@...@ @.@      ", // keep shape
-		"@..@   @.@     ", // keep shape
-		"@.@    @.@     ", // keep shape
-		"@@      @.@    ", // keep shape
-		"@       @.@    ", // keep shape
-		"         @.@   ", // keep shape
-		"         @@@   ", // keep shape
+		u8"@              ", // keep shape
+		u8"@@             ", // keep shape
+		u8"@.@            ", // keep shape
+		u8"@..@           ", // keep shape
+		u8"@...@          ", // keep shape
+		u8"@....@         ", // keep shape
+		u8"@.....@        ", // keep shape
+		u8"@......@       ", // keep shape
+		u8"@.......@      ", // keep shape
+		u8"@........@     ", // keep shape
+		u8"@.........@    ", // keep shape
+		u8"@..........@   ", // keep shape
+		u8"@...........@  ", // keep shape
+		u8"@............@ ", // keep shape
+		u8"@......@@@@@@@@", // keep shape
+		u8"@......@       ", // keep shape
+		u8"@....@@.@      ", // keep shape
+		u8"@...@ @.@      ", // keep shape
+		u8"@..@   @.@     ", // keep shape
+		u8"@.@    @.@     ", // keep shape
+		u8"@@      @.@    ", // keep shape
+		u8"@       @.@    ", // keep shape
+		u8"         @.@   ", // keep shape
+		u8"         @@@   ", // keep shape
 	};
 
 	void draw_mouse(PixelWriter& writer, int x, int y) {
@@ -61,7 +61,7 @@ namespace {
 }
 
 void mouse_observer(int8_t displacement_x, int8_t displacement_y) {
-	printk("mouse: x: %d, y: %d\n", displacement_x, displacement_y);
+	printk(u8"mouse: x: %d, y: %d\n", displacement_x, displacement_y);
 }
 
 extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
@@ -96,7 +96,7 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 	printk(u8"gochuumon wa usagi desu ka?\n");
 
 	auto err = pci::scan_all_bus();
-	log->debug("scan_all_bus: %s\n", err.name());
+	log->debug(u8"scan_all_bus: %s\n", err.name());
 
 	pci::Device* xhc_device = nullptr;
 	for (int i = 0; i < pci::num_devices; ++i) {
@@ -109,30 +109,30 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 	}
 
 	if (xhc_device != nullptr) {
-		log->info("xHC has been found: %d.%d.%d\n", xhc_device->bus, xhc_device->device, xhc_device->function);
+		log->info(u8"xHC has been found: %d.%d.%d\n", xhc_device->bus, xhc_device->device, xhc_device->function);
 
 		const auto xhc_bar = pci::read_bar(*xhc_device, 0);
 		const std::uint64_t xhc_mmio_base = xhc_bar & ~static_cast<std::uint64_t>(0xf);
-		log->debug("xHC mmio_base = %08lx\n", xhc_mmio_base);
+		log->debug(u8"xHC mmio_base = %08lx\n", xhc_mmio_base);
 
 		usb::xhci::Controller xhc(xhc_mmio_base);
 
 		{
 			auto err = xhc.Initialize();
-			log->debug("xhc.Initialize(): %s\n", err.Name());
+			log->debug(u8"xhc.Initialize(): %s\n", err.Name());
 		}
 
-		log->info("xHC starting\n");
+		log->info(u8"xHC starting\n");
 		xhc.Run();
 
 		usb::HIDMouseDriver::default_observer = mouse_observer;
 		for (int i = 1; i <= xhc.MaxPorts(); ++i) {
 			auto port = xhc.PortAt(i);
-			log->debug("port %d: IsConnected=%d\n", i, port.IsConnected());
+			log->debug(u8"port %d: IsConnected=%d\n", i, port.IsConnected());
 
 			if (port.IsConnected()) {
 				if (auto err = usb::xhci::ConfigurePort(xhc, port)) {
-					log->error("Failed to configure port: %s at %s:%d\n", err.Name(), err.File(), err.Line());
+					log->error(u8"Failed to configure port: %s at %s:%d\n", err.Name(), err.File(), err.Line());
 					continue;
 				}
 			}
@@ -140,7 +140,7 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 
 		while (true) {
 			if (auto err = usb::xhci::ProcessEvent(xhc)) {
-				log->error("Error while ProcessEvent: %s at %s:%d\n", err.Name(), err.File(), err.Line());
+				log->error(u8"Error while ProcessEvent: %s at %s:%d\n", err.Name(), err.File(), err.Line());
 			}
 		}
 	}
