@@ -3,9 +3,9 @@
 #include "usb/classdriver/base.hpp"
 #include "usb/classdriver/keyboard.hpp"
 #include "usb/classdriver/mouse.hpp"
-#include "usb/descriptor.hpp"
 #include "usb/setupdata.hpp"
 
+#include "descriptor.hpp"
 #include "logger.hpp"
 
 namespace {
