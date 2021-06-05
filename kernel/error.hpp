@@ -9,6 +9,7 @@ public:
 		Full,
 		Empty,
 		LastOfCode,
+		IndexOutOfRange,
 	};
 
 	Error(Code code) : code_{code} {}
@@ -23,15 +24,22 @@ public:
 			return code_names_[num_code];
 		}
 
-		return "Unknown";
+		return u8"Unknown";
 	}
 
 private:
-	static constexpr std::array<const char*, 3> code_names_ = {
+	static constexpr std::array<const char*, 4> code_names_ = {
 		u8"Success",
 		u8"Full",
 		u8"Empty",
+		u8"IndexOutOfRange",
 	};
 
 	Code code_;
+};
+
+template <typename T>
+struct WithError {
+	T value;
+	Error error;
 };

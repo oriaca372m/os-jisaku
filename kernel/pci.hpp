@@ -40,7 +40,7 @@ namespace pci {
 	std::uint16_t read_vendor_id(std::uint8_t bus, std::uint8_t device, std::uint8_t function);
 	ClassCode read_class_code(std::uint8_t bus, std::uint8_t device, std::uint8_t function);
 
-	std::uint64_t read_bar(Device& device, unsigned int bar_index);
+	WithError<std::uint64_t> read_bar(Device& device, unsigned int bar_index);
 
 	inline std::array<Device, 32> devices;
 	inline int num_devices;

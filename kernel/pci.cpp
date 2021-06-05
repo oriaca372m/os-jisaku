@@ -56,24 +56,24 @@ namespace pci {
 		return 0x10 + 4 * bar_index;
 	}
 
-	std::uint64_t read_bar(Device& device, unsigned int bar_index) {
+	WithError<std::uint64_t> read_bar(Device& device, unsigned int bar_index) {
 		if (bar_index >= 6) {
-			return 0;
+			return {0, Error::Code::IndexOutOfRange};
 		}
 
 		const auto addr = calc_bar_address(bar_index);
 		auto bar = read_conf_reg(device, addr);
 
 		if ((bar & 4u) == 0) {
-			return bar;
+			return {bar, Error::Code::Success};
 		}
 
 		if (bar_index >= 5) {
-			return 0;
+			return {0, Error::Code::IndexOutOfRange};
 		}
 
 		const auto bar_upper = read_conf_reg(device, addr + 4);
-		return bar | (static_cast<std::uint64_t>(bar_upper) << 32);
+		return {bar | (static_cast<std::uint64_t>(bar_upper) << 32), Error::Code::Success};
 	}
 
 	bool is_single_function_device(std::uint8_t header_type) {
