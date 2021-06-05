@@ -46,3 +46,5 @@ set_target_properties(usb PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})
 target_link_options(usb
 	PUBLIC -z norelro
 )
+
+target_link_libraries(usb PRIVATE kernel_interface)

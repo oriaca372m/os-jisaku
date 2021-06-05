@@ -22,6 +22,7 @@ void* operator new(std::size_t) {
 		__asm("hlt");
 	}
 }
+
 void operator delete(void*) noexcept {}
 void operator delete(void*, std::align_val_t) noexcept {}
 
