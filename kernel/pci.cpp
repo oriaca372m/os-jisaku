@@ -47,6 +47,35 @@ namespace pci {
 		return read_data();
 	}
 
+	std::uint32_t read_conf_reg(const Device& device, std::uint8_t reg_addr) {
+		write_address(make_address(device.bus, device.device, device.function, reg_addr));
+		return read_data();
+	}
+
+	constexpr std::uint8_t calc_bar_address(unsigned int bar_index) {
+		return 0x10 + 4 * bar_index;
+	}
+
+	std::uint64_t read_bar(Device& device, unsigned int bar_index) {
+		if (bar_index >= 6) {
+			return 0;
+		}
+
+		const auto addr = calc_bar_address(bar_index);
+		auto bar = read_conf_reg(device, addr);
+
+		if ((bar & 4u) == 0) {
+			return bar;
+		}
+
+		if (bar_index >= 5) {
+			return 0;
+		}
+
+		const auto bar_upper = read_conf_reg(device, addr + 4);
+		return bar | (static_cast<std::uint64_t>(bar_upper) << 32);
+	}
+
 	bool is_single_function_device(std::uint8_t header_type) {
 		return (header_type & 0b1000'0000u) == 0;
 	}

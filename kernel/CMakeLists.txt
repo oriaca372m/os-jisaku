@@ -14,6 +14,7 @@ add_executable(kernel.elf
 	console.cpp
 	pci.cpp
 	utils.cpp
+	kernel_interface_impl.cpp
 )
 
 target_include_directories(kernel.elf PUBLIC
@@ -66,3 +67,9 @@ target_link_libraries(kernel.elf PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../stdlib/b
 
 add_subdirectory(asmfunc)
 target_link_libraries(kernel.elf PUBLIC asmfunc)
+
+add_subdirectory(kernel_interface)
+target_link_libraries(kernel.elf PUBLIC kernel_interface)
+
+add_subdirectory(usb)
+target_link_libraries(kernel.elf PUBLIC usb)

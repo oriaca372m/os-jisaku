@@ -3,6 +3,12 @@
 #include <cstdio>
 #include <new>
 
+#include <usb/classdriver/mouse.hpp>
+#include <usb/device.hpp>
+#include <usb/memory.hpp>
+#include <usb/xhci/trb.hpp>
+#include <usb/xhci/xhci.hpp>
+
 #include "console.hpp"
 #include "font.hpp"
 #include "frame_buffer_config.hpp"
@@ -10,7 +16,33 @@
 #include "pci.hpp"
 #include "utils.hpp"
 
+enum LogLevel {
+	kError = 3,
+	kWarn = 4,
+	kInfo = 6,
+	kDebug = 7,
+};
+
+int Log(LogLevel level, const char* format, ...) {
+	printk("log");
+	return 0;
+}
+
+void* operator new(std::size_t) {
+	printk("bad new call!");
+	while (true) {
+		__asm("hlt");
+	}
+}
+
 void operator delete(void*) noexcept {}
+void operator delete(void*, std::align_val_t) noexcept {}
+
+extern "C" void __cxa_pure_virtual() {
+	while (true) {
+		__asm("hlt");
+	}
+}
 
 namespace {
 	const int mouse_cursor_width = 15;
@@ -56,6 +88,10 @@ namespace {
 	}
 }
 
+void mouse_observer(int8_t displacement_x, int8_t displacement_y) {
+	printk("mouse: x: %d, y: %d\n", displacement_x, displacement_y);
+}
+
 extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 	char pixel_writer_buf[sizeof(RGBResv8BitPerColorPixelWriter)];
 	PixelWriter* pixel_writer = reinterpret_cast<PixelWriter*>(pixel_writer_buf);
@@ -97,6 +133,39 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 
 	if (xhc_device != nullptr) {
 		printk("xHC has been found: %d.%d.%d\n", xhc_device->bus, xhc_device->device, xhc_device->function);
+
+		const auto xhc_bar = pci::read_bar(*xhc_device, 0);
+		const std::uint64_t xhc_mmio_base = xhc_bar & ~static_cast<std::uint64_t>(0xf);
+		printk("xHC mmio_base = %08lx\n", xhc_mmio_base);
+
+		usb::xhci::Controller xhc(xhc_mmio_base);
+
+		{
+			auto err = xhc.Initialize();
+			printk("xhc.Initialize(): %s\n", err.Name());
+		}
+
+		printk("xHC starting\n");
+		xhc.Run();
+
+		usb::HIDMouseDriver::default_observer = mouse_observer;
+		for (int i = 1; i <= xhc.MaxPorts(); ++i) {
+			auto port = xhc.PortAt(i);
+			printk("port %d: IsConnected=%d\n", i, port.IsConnected());
+
+			if (port.IsConnected()) {
+				if (auto err = usb::xhci::ConfigurePort(xhc, port)) {
+					printk("Failed to configure port: %s at %s:%d\n", err.Name(), err.File(), err.Line());
+					continue;
+				}
+			}
+		}
+
+		while (true) {
+			if (auto err = usb::xhci::ProcessEvent(xhc)) {
+				printk("Error while ProcessEvent: %s at %s:%d\n", err.Name(), err.File(), err.Line());
+			}
+		}
 	}
 
 	draw_mouse(*pixel_writer, 200, 100);
