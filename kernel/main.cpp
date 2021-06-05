@@ -139,9 +139,6 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 		printk("xHC mmio_base = %08lx\n", xhc_mmio_base);
 
 		usb::xhci::Controller xhc(xhc_mmio_base);
-		if (xhc_device->vendor_id == 0x8086) {
-			// switch_ehci2_xhci
-		}
 
 		{
 			auto err = xhc.Initialize();
