@@ -6,19 +6,19 @@ set(CMAKE_C_LINK_EXECUTABLE "/usr/bin/ld.lld <LINK_FLAGS> <OBJECTS> <LINK_LIBRAR
 set(CMAKE_CXX_LINK_EXECUTABLE "/usr/bin/ld.lld <LINK_FLAGS> <OBJECTS> <LINK_LIBRARIES> -o <TARGET>")
 
 add_library(usb STATIC
-	interface/usb/classdriver/base.cpp
-	interface/usb/classdriver/hid.cpp
-	interface/usb/classdriver/keyboard.cpp
-	interface/usb/classdriver/mouse.cpp
-	interface/usb/xhci/device.cpp
-	interface/usb/xhci/devmgr.cpp
-	interface/usb/xhci/port.cpp
-	interface/usb/xhci/registers.cpp
-	interface/usb/xhci/ring.cpp
-	interface/usb/xhci/trb.cpp
-	interface/usb/xhci/xhci.cpp
-	interface/usb/device.cpp
-	interface/usb/memory.cpp
+	classdriver/base.cpp
+	classdriver/hid.cpp
+	classdriver/keyboard.cpp
+	classdriver/mouse.cpp
+	xhci/device.cpp
+	xhci/devmgr.cpp
+	xhci/port.cpp
+	xhci/registers.cpp
+	xhci/ring.cpp
+	xhci/trb.cpp
+	xhci/xhci.cpp
+	device.cpp
+	memory.cpp
 	logger.cpp
 )
 
