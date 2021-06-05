@@ -66,3 +66,6 @@ target_link_libraries(kernel.elf PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../stdlib/b
 
 add_subdirectory(asmfunc)
 target_link_libraries(kernel.elf PUBLIC asmfunc)
+
+add_subdirectory(usb)
+target_link_libraries(kernel.elf PUBLIC usb)
