@@ -27,9 +27,6 @@ namespace {
 		mouse_cursor->move_relative({displacement_x, displacement_y});
 	}
 
-	alignas(usb::xhci::Controller) std::uint8_t xhc_buffer[sizeof(usb::xhci::Controller)];
-	usb::xhci::Controller* xhc = reinterpret_cast<usb::xhci::Controller*>(xhc_buffer);
-
 	struct Message {
 		enum class Type {
 			InterruptXHCI,
@@ -129,26 +126,26 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 	const std::uint64_t xhc_mmio_base = xhc_bar.value & ~static_cast<std::uint64_t>(0xf);
 	log->debug(u8"xHC mmio_base = %08lx\n", xhc_mmio_base);
 
-	xhc = new (xhc_buffer) usb::xhci::Controller(xhc_mmio_base);
+	usb::xhci::Controller xhc(xhc_mmio_base);
 
 	{
-		auto err = xhc->Initialize();
+		auto err = xhc.Initialize();
 		log->debug(u8"xhc.Initialize(): %s\n", err.Name());
 	}
 
 	log->info(u8"xHC starting\n");
-	xhc->Run();
+	xhc.Run();
 
 	// 割り込みの開始
 	__asm("sti");
 
 	usb::HIDMouseDriver::default_observer = mouse_observer;
-	for (int i = 1; i <= xhc->MaxPorts(); ++i) {
-		auto port = xhc->PortAt(i);
+	for (int i = 1; i <= xhc.MaxPorts(); ++i) {
+		auto port = xhc.PortAt(i);
 		log->debug(u8"port %d: IsConnected=%d\n", i, port.IsConnected());
 
 		if (port.IsConnected()) {
-			if (auto err = usb::xhci::ConfigurePort(*xhc, port)) {
+			if (auto err = usb::xhci::ConfigurePort(xhc, port)) {
 				log->error(u8"Failed to configure port: %s at %s:%d\n", err.Name(), err.File(), err.Line());
 				continue;
 			}
@@ -170,8 +167,8 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 
 		switch (msg.type) {
 		case Message::Type::InterruptXHCI:
-			while (xhc->PrimaryEventRing()->HasFront()) {
-				if (auto err = ProcessEvent(*xhc)) {
+			while (xhc.PrimaryEventRing()->HasFront()) {
+				if (auto err = ProcessEvent(xhc)) {
 					log->error(u8"Error while ProcessEvent: %s at %s:%d\n", err.Name(), err.File(), err.Line());
 				}
 			}
