@@ -120,7 +120,7 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 		}
 
 		const auto xhc_bar = pci::read_bar(*xhc_device, 0);
-		log->debug("read_bar: %s\n", xhc_bar.error.name());
+		log->debug(u8"read_bar: %s\n", xhc_bar.error.name());
 
 		const std::uint64_t xhc_mmio_base = xhc_bar.value & ~static_cast<std::uint64_t>(0xf);
 		log->debug(u8"xHC mmio_base = %08lx\n", xhc_mmio_base);
