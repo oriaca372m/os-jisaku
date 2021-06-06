@@ -17,6 +17,7 @@
 #include "logger.hpp"
 #include "mouse.hpp"
 #include "pci.hpp"
+#include "queue.hpp"
 #include "utils.hpp"
 
 namespace {
@@ -29,13 +30,16 @@ namespace {
 	alignas(usb::xhci::Controller) std::uint8_t xhc_buffer[sizeof(usb::xhci::Controller)];
 	usb::xhci::Controller* xhc = reinterpret_cast<usb::xhci::Controller*>(xhc_buffer);
 
-	__attribute__((interrupt)) void int_handler_xhci(InterruptFrame* frame) {
-		while (xhc->PrimaryEventRing()->HasFront()) {
-			if (auto err = ProcessEvent(*xhc)) {
-				log->error(u8"Error while ProcessEvent: %s at %s:%d\n", err.Name(), err.File(), err.Line());
-			}
-		}
+	struct Message {
+		enum class Type {
+			InterruptXHCI,
+		} type;
+	};
 
+	ArrayQueue<Message>* main_queue;
+
+	__attribute__((interrupt)) void int_handler_xhci(InterruptFrame* frame) {
+		main_queue->push(Message{Message::Type::InterruptXHCI});
 		notify_end_of_interrput();
 	}
 }
@@ -62,6 +66,10 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 
 	MouseCursor mouse_cursor_instance(pixel_writer, desktop_bg_color, {200, 100});
 	mouse_cursor = &mouse_cursor_instance;
+
+	std::array<Message, 32> main_queue_buffer;
+	ArrayQueue<Message> main_queue_instance(main_queue_buffer);
+	main_queue = &main_queue_instance;
 
 	const int frame_width = frame_buffer_config.horizontal_resolution;
 	const int frame_height = frame_buffer_config.vertical_resolution;
@@ -145,6 +153,29 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 	}
 
 	while (true) {
-		__asm("hlt");
+		__asm__("cli");
+		if (main_queue->count() == 0) {
+			__asm__(
+				"sti;"
+				"hlt;");
+			continue;
+		}
+
+		const auto msg = main_queue->front();
+		main_queue->pop();
+		__asm("sti");
+
+		switch (msg.type) {
+		case Message::Type::InterruptXHCI:
+			while (xhc->PrimaryEventRing()->HasFront()) {
+				if (auto err = ProcessEvent(*xhc)) {
+					log->error(u8"Error while ProcessEvent: %s at %s:%d\n", err.Name(), err.File(), err.Line());
+				}
+			}
+
+			break;
+		default:
+			log->error(u8"Unknown message type: %d\n", static_cast<int>(msg.type));
+		}
 	}
 }
