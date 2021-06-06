@@ -20,3 +20,5 @@ int printk(const char* format, Args... args) {
 	global_console->put_string(buf);
 	return result;
 }
+
+[[noreturn]] void halt();

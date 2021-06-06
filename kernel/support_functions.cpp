@@ -4,6 +4,7 @@
 #include <sys/types.h>
 
 #include "logger.hpp"
+#include "utils.hpp"
 
 extern "C" caddr_t sbrk(int incr) {
 	return nullptr;
@@ -26,10 +27,7 @@ extern "C" int kill(int pid, int sig) {
 
 [[noreturn]] void bad_call(const char* name) {
 	log->error(u8"bad %s call!\n", name);
-
-	while (true) {
-		__asm("hlt");
-	}
+	halt();
 }
 
 void* operator new(std::size_t) {
