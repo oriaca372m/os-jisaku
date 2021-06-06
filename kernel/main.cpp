@@ -80,7 +80,7 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 	printk(u8"gochuumon wa usagi desu ka?\n");
 
 	auto err = pci::scan_all_bus();
-	log->debug(u8"scan_all_bus: %s\n", err.name());
+	log->debug(u8"pci::scan_all_bus(): %s\n", err.name());
 
 	pci::Device* xhc_device = nullptr;
 	for (int i = 0; i < pci::num_devices; ++i) {
@@ -117,11 +117,11 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 			pci::MSIDeliveryMode::Fixed,
 			InterruptVector::xhci,
 			0);
-		log->debug(u8"pci::configure_msi_fixed_destination: %s\n", err.name());
+		log->debug(u8"pci::configure_msi_fixed_destination(): %s\n", err.name());
 	}
 
 	const auto xhc_bar = pci::read_bar(*xhc_device, 0);
-	log->debug(u8"read_bar: %s\n", xhc_bar.error.name());
+	log->debug(u8"pci::read_bar(): %s\n", xhc_bar.error.name());
 
 	const std::uint64_t xhc_mmio_base = xhc_bar.value & ~static_cast<std::uint64_t>(0xf);
 	log->debug(u8"xHC mmio_base = %08lx\n", xhc_mmio_base);
