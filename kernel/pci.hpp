@@ -47,4 +47,23 @@ namespace pci {
 
 	Error scan_all_bus();
 	Error scan_bus(std::uint8_t bus);
+
+	enum class MSITriggerMode { Edge = 0, Level = 1 };
+
+	enum class MSIDeliveryMode {
+		Fixed = 0b000,
+		LowestPriority = 0b001,
+		SMI = 0b010,
+		NMI = 0b100,
+		INIT = 0b101,
+		ExtINT = 0b111
+	};
+
+	Error configure_msi_fixed_destination(
+		const Device& device,
+		std::uint8_t apic_id,
+		MSITriggerMode trigger_mode,
+		MSIDeliveryMode delivery_mode,
+		std::uint8_t vector,
+		unsigned int num_vector_exponent);
 }

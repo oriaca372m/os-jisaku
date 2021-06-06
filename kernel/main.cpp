@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <cstdio>
 
+#include <asmfunc.hpp>
 #include <kernel_interface/logger.hpp>
 #include <usb/classdriver/mouse.hpp>
 #include <usb/device.hpp>
@@ -12,6 +13,7 @@
 #include "font.hpp"
 #include "frame_buffer_config.hpp"
 #include "graphics.hpp"
+#include "interrupt.hpp"
 #include "logger.hpp"
 #include "mouse.hpp"
 #include "pci.hpp"
@@ -22,6 +24,19 @@ namespace {
 
 	void mouse_observer(int8_t displacement_x, int8_t displacement_y) {
 		mouse_cursor->move_relative({displacement_x, displacement_y});
+	}
+
+	alignas(usb::xhci::Controller) std::uint8_t xhc_buffer[sizeof(usb::xhci::Controller)];
+	usb::xhci::Controller* xhc = reinterpret_cast<usb::xhci::Controller*>(xhc_buffer);
+
+	__attribute__((interrupt)) void int_handler_xhci(InterruptFrame* frame) {
+		while (xhc->PrimaryEventRing()->HasFront()) {
+			if (auto err = ProcessEvent(*xhc)) {
+				log->error(u8"Error while ProcessEvent: %s at %s:%d\n", err.Name(), err.File(), err.Line());
+			}
+		}
+
+		notify_end_of_interrput();
 	}
 }
 
@@ -75,38 +90,56 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 	if (xhc_device != nullptr) {
 		log->info(u8"xHC has been found: %d.%d.%d\n", xhc_device->bus, xhc_device->device, xhc_device->function);
 
+		// 割り込みの設定
+		{
+			set_idt_entry(
+				idt[InterruptVector::xhci],
+				make_idt_attr(DescriptorType::InterruptGate, 0),
+				reinterpret_cast<std::uint64_t>(int_handler_xhci),
+				get_cs());
+			load_idt(sizeof(idt) - 1, reinterpret_cast<std::uintptr_t>(idt.data()));
+
+			const std::uint8_t bsp_local_apic_id = *reinterpret_cast<const std::uint32_t*>(0xfee00020) >> 24;
+
+			const auto err = pci::configure_msi_fixed_destination(
+				*xhc_device,
+				bsp_local_apic_id,
+				pci::MSITriggerMode::Level,
+				pci::MSIDeliveryMode::Fixed,
+				InterruptVector::xhci,
+				0);
+			log->debug(u8"pci::configure_msi_fixed_destination: %s\n", err.name());
+		}
+
 		const auto xhc_bar = pci::read_bar(*xhc_device, 0);
 		log->debug("read_bar: %s\n", xhc_bar.error.name());
 
 		const std::uint64_t xhc_mmio_base = xhc_bar.value & ~static_cast<std::uint64_t>(0xf);
 		log->debug(u8"xHC mmio_base = %08lx\n", xhc_mmio_base);
 
-		usb::xhci::Controller xhc(xhc_mmio_base);
+		xhc = new (xhc_buffer) usb::xhci::Controller(xhc_mmio_base);
 
 		{
-			auto err = xhc.Initialize();
+			auto err = xhc->Initialize();
 			log->debug(u8"xhc.Initialize(): %s\n", err.Name());
 		}
 
 		log->info(u8"xHC starting\n");
-		xhc.Run();
+		xhc->Run();
+
+		// 割り込みの開始
+		__asm("sti");
 
 		usb::HIDMouseDriver::default_observer = mouse_observer;
-		for (int i = 1; i <= xhc.MaxPorts(); ++i) {
-			auto port = xhc.PortAt(i);
+		for (int i = 1; i <= xhc->MaxPorts(); ++i) {
+			auto port = xhc->PortAt(i);
 			log->debug(u8"port %d: IsConnected=%d\n", i, port.IsConnected());
 
 			if (port.IsConnected()) {
-				if (auto err = usb::xhci::ConfigurePort(xhc, port)) {
+				if (auto err = usb::xhci::ConfigurePort(*xhc, port)) {
 					log->error(u8"Failed to configure port: %s at %s:%d\n", err.Name(), err.File(), err.Line());
 					continue;
 				}
-			}
-		}
-
-		while (true) {
-			if (auto err = usb::xhci::ProcessEvent(xhc)) {
-				log->error(u8"Error while ProcessEvent: %s at %s:%d\n", err.Name(), err.File(), err.Line());
 			}
 		}
 	}

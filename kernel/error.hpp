@@ -8,8 +8,10 @@ public:
 		Success,
 		Full,
 		Empty,
-		LastOfCode,
 		IndexOutOfRange,
+		NotImplemented,
+		NoPCIMSI,
+		LastOfCode,
 	};
 
 	Error(Code code) : code_{code} {}
@@ -28,11 +30,13 @@ public:
 	}
 
 private:
-	static constexpr std::array<const char*, 4> code_names_ = {
+	static constexpr std::array code_names_ = {
 		u8"Success",
 		u8"Full",
 		u8"Empty",
 		u8"IndexOutOfRange",
+		u8"NotImplemented",
+		u8"NoPCIMSI",
 	};
 
 	Code code_;

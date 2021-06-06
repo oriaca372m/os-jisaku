@@ -52,6 +52,11 @@ namespace pci {
 		return read_data();
 	}
 
+	void write_conf_reg(const Device& device, std::uint8_t reg_addr, std::uint32_t value) {
+		write_address(make_address(device.bus, device.device, device.function, reg_addr));
+		write_data(value);
+	}
+
 	constexpr std::uint8_t calc_bar_address(unsigned int bar_index) {
 		return 0x10 + 4 * bar_index;
 	}
@@ -169,5 +174,151 @@ namespace pci {
 		}
 
 		return Error::Code::Success;
+	}
+
+	union CapabilityHeader {
+		std::uint32_t data;
+		struct {
+			std::uint8_t cap_id : 8;
+			std::uint8_t next_ptr : 8;
+			std::uint16_t cap : 16;
+		} __attribute__((packed)) bits;
+	} __attribute__((packed));
+
+	struct MSICapability {
+		union {
+			std::uint32_t data;
+			struct {
+				std::uint8_t cap_id : 8;
+				std::uint8_t next_ptr : 8;
+				std::uint8_t msi_enable : 1;
+				std::uint8_t multi_msg_capable : 3;
+				std::uint8_t multi_msg_enable : 3;
+				std::uint8_t addr_64_capable : 1;
+				std::uint8_t per_vector_mask_capable : 1;
+				std::uint8_t : 7;
+			} __attribute__((packed)) bits;
+		} __attribute__((packed)) header;
+
+		std::uint32_t msg_addr;
+		std::uint32_t msg_upper_addr;
+		std::uint32_t msg_data;
+		std::uint32_t mask_bits;
+		std::uint32_t pending_bits;
+	} __attribute__((packed));
+
+	CapabilityHeader read_capability_header(const Device& device, std::uint8_t addr) {
+		pci::CapabilityHeader header;
+		header.data = pci::read_conf_reg(device, addr);
+		return header;
+	}
+
+	static constexpr std::uint8_t capability_msi = 0x05;
+	static constexpr std::uint8_t capability_msix = 0x11;
+
+	MSICapability read_msi_capability(const Device& device, std::uint8_t cap_addr) {
+		MSICapability msi_cap{};
+
+		msi_cap.header.data = read_conf_reg(device, cap_addr);
+		msi_cap.msg_addr = read_conf_reg(device, cap_addr + 4);
+
+		std::uint8_t msg_data_addr = cap_addr + 8;
+		if (msi_cap.header.bits.addr_64_capable) {
+			msi_cap.msg_upper_addr = read_conf_reg(device, cap_addr + 8);
+			msg_data_addr = cap_addr + 12;
+		}
+
+		msi_cap.msg_data = read_conf_reg(device, msg_data_addr);
+
+		if (msi_cap.header.bits.per_vector_mask_capable) {
+			msi_cap.mask_bits = read_conf_reg(device, msg_data_addr + 4);
+			msi_cap.pending_bits = read_conf_reg(device, msg_data_addr + 8);
+		}
+
+		return msi_cap;
+	}
+
+	void write_msi_capability(const Device& device, std::uint8_t cap_addr, const MSICapability& msi_cap) {
+		write_conf_reg(device, cap_addr, msi_cap.header.data);
+		write_conf_reg(device, cap_addr + 4, msi_cap.msg_addr);
+
+		std::uint8_t msg_data_addr = cap_addr + 8;
+		if (msi_cap.header.bits.addr_64_capable) {
+			write_conf_reg(device, cap_addr + 8, msi_cap.msg_upper_addr);
+			msg_data_addr = cap_addr + 12;
+		}
+
+		write_conf_reg(device, msg_data_addr, msi_cap.msg_data);
+
+		if (msi_cap.header.bits.per_vector_mask_capable) {
+			write_conf_reg(device, msg_data_addr + 4, msi_cap.mask_bits);
+			write_conf_reg(device, msg_data_addr + 8, msi_cap.pending_bits);
+		}
+	}
+
+	Error configure_msi_register(
+		const Device& device,
+		std::uint8_t cap_addr,
+		std::uint32_t msg_addr,
+		std::uint32_t msg_data,
+		unsigned int num_vector_exponent) {
+		auto msi_cap = read_msi_capability(device, cap_addr);
+		if (msi_cap.header.bits.multi_msg_capable <= num_vector_exponent) {
+			// ?????
+			msi_cap.header.bits.multi_msg_enable = msi_cap.header.bits.multi_msg_capable;
+		} else {
+			msi_cap.header.bits.multi_msg_enable = num_vector_exponent;
+		}
+
+		msi_cap.header.bits.msi_enable = 1;
+		msi_cap.msg_addr = msg_addr;
+		msi_cap.msg_data = msg_data;
+
+		write_msi_capability(device, cap_addr, msi_cap);
+		return Error::Code::Success;
+	}
+
+	Error configure_msi(
+		const Device& device,
+		std::uint32_t msg_addr,
+		std::uint32_t msg_data,
+		unsigned int num_vector_exponent) {
+		std::uint8_t cap_addr = read_conf_reg(device, 0x34) & 0xffu;
+		std::uint8_t msi_cap_addr = 0;
+		std::uint8_t msix_cap_addr = 0;
+
+		while (cap_addr != 0) {
+			auto header = read_capability_header(device, cap_addr);
+			if (header.bits.cap_id == capability_msi) {
+				msi_cap_addr = cap_addr;
+			} else if (header.bits.cap_id == capability_msix) {
+				msix_cap_addr = cap_addr;
+			}
+
+			cap_addr = header.bits.next_ptr;
+		}
+
+		if (msi_cap_addr != 0) {
+			return configure_msi_register(device, msi_cap_addr, msg_addr, msg_data, num_vector_exponent);
+		} else if (msix_cap_addr != 0) {
+			return Error::Code::NotImplemented;
+		}
+		return Error::Code::NoPCIMSI;
+	}
+
+	Error configure_msi_fixed_destination(
+		const Device& device,
+		std::uint8_t apic_id,
+		MSITriggerMode trigger_mode,
+		MSIDeliveryMode delivery_mode,
+		std::uint8_t vector,
+		unsigned int num_vector_exponent) {
+		std::uint32_t msg_addr = 0xfee00000u | (apic_id << 12);
+		std::uint32_t msg_data = (static_cast<std::uint32_t>(delivery_mode) << 8) | vector;
+		if (trigger_mode == MSITriggerMode::Level) {
+			msg_data |= 0xc000;
+		}
+
+		return configure_msi(device, msg_addr, msg_data, num_vector_exponent);
 	}
 }
