@@ -95,59 +95,62 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 		}
 	}
 
-	if (xhc_device != nullptr) {
-		log->info(u8"xHC has been found: %d.%d.%d\n", xhc_device->bus, xhc_device->device, xhc_device->function);
+	if (xhc_device == nullptr) {
+		log->error(u8"Could not found xHC!\n");
+		halt();
+	}
 
-		// 割り込みの設定
-		{
-			set_idt_entry(
-				idt[InterruptVector::xhci],
-				make_idt_attr(DescriptorType::InterruptGate, 0),
-				reinterpret_cast<std::uint64_t>(int_handler_xhci),
-				get_cs());
-			load_idt(sizeof(idt) - 1, reinterpret_cast<std::uintptr_t>(idt.data()));
+	log->info(u8"xHC has been found: %d.%d.%d\n", xhc_device->bus, xhc_device->device, xhc_device->function);
 
-			const std::uint8_t bsp_local_apic_id = *reinterpret_cast<const std::uint32_t*>(0xfee00020) >> 24;
+	// 割り込みの設定
+	{
+		set_idt_entry(
+			idt[InterruptVector::xhci],
+			make_idt_attr(DescriptorType::InterruptGate, 0),
+			reinterpret_cast<std::uint64_t>(int_handler_xhci),
+			get_cs());
+		load_idt(sizeof(idt) - 1, reinterpret_cast<std::uintptr_t>(idt.data()));
 
-			const auto err = pci::configure_msi_fixed_destination(
-				*xhc_device,
-				bsp_local_apic_id,
-				pci::MSITriggerMode::Level,
-				pci::MSIDeliveryMode::Fixed,
-				InterruptVector::xhci,
-				0);
-			log->debug(u8"pci::configure_msi_fixed_destination: %s\n", err.name());
-		}
+		const std::uint8_t bsp_local_apic_id = *reinterpret_cast<const std::uint32_t*>(0xfee00020) >> 24;
 
-		const auto xhc_bar = pci::read_bar(*xhc_device, 0);
-		log->debug(u8"read_bar: %s\n", xhc_bar.error.name());
+		const auto err = pci::configure_msi_fixed_destination(
+			*xhc_device,
+			bsp_local_apic_id,
+			pci::MSITriggerMode::Level,
+			pci::MSIDeliveryMode::Fixed,
+			InterruptVector::xhci,
+			0);
+		log->debug(u8"pci::configure_msi_fixed_destination: %s\n", err.name());
+	}
 
-		const std::uint64_t xhc_mmio_base = xhc_bar.value & ~static_cast<std::uint64_t>(0xf);
-		log->debug(u8"xHC mmio_base = %08lx\n", xhc_mmio_base);
+	const auto xhc_bar = pci::read_bar(*xhc_device, 0);
+	log->debug(u8"read_bar: %s\n", xhc_bar.error.name());
 
-		xhc = new (xhc_buffer) usb::xhci::Controller(xhc_mmio_base);
+	const std::uint64_t xhc_mmio_base = xhc_bar.value & ~static_cast<std::uint64_t>(0xf);
+	log->debug(u8"xHC mmio_base = %08lx\n", xhc_mmio_base);
 
-		{
-			auto err = xhc->Initialize();
-			log->debug(u8"xhc.Initialize(): %s\n", err.Name());
-		}
+	xhc = new (xhc_buffer) usb::xhci::Controller(xhc_mmio_base);
 
-		log->info(u8"xHC starting\n");
-		xhc->Run();
+	{
+		auto err = xhc->Initialize();
+		log->debug(u8"xhc.Initialize(): %s\n", err.Name());
+	}
 
-		// 割り込みの開始
-		__asm("sti");
+	log->info(u8"xHC starting\n");
+	xhc->Run();
 
-		usb::HIDMouseDriver::default_observer = mouse_observer;
-		for (int i = 1; i <= xhc->MaxPorts(); ++i) {
-			auto port = xhc->PortAt(i);
-			log->debug(u8"port %d: IsConnected=%d\n", i, port.IsConnected());
+	// 割り込みの開始
+	__asm("sti");
 
-			if (port.IsConnected()) {
-				if (auto err = usb::xhci::ConfigurePort(*xhc, port)) {
-					log->error(u8"Failed to configure port: %s at %s:%d\n", err.Name(), err.File(), err.Line());
-					continue;
-				}
+	usb::HIDMouseDriver::default_observer = mouse_observer;
+	for (int i = 1; i <= xhc->MaxPorts(); ++i) {
+		auto port = xhc->PortAt(i);
+		log->debug(u8"port %d: IsConnected=%d\n", i, port.IsConnected());
+
+		if (port.IsConnected()) {
+			if (auto err = usb::xhci::ConfigurePort(*xhc, port)) {
+				log->error(u8"Failed to configure port: %s at %s:%d\n", err.Name(), err.File(), err.Line());
+				continue;
 			}
 		}
 	}
