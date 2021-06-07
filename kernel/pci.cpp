@@ -264,7 +264,6 @@ namespace pci {
 		unsigned int num_vector_exponent) {
 		auto msi_cap = read_msi_capability(device, cap_addr);
 		if (msi_cap.header.bits.multi_msg_capable <= num_vector_exponent) {
-			// ?????
 			msi_cap.header.bits.multi_msg_enable = msi_cap.header.bits.multi_msg_capable;
 		} else {
 			msi_cap.header.bits.multi_msg_enable = num_vector_exponent;
