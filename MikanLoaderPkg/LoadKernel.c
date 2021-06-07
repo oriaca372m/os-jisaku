@@ -39,17 +39,14 @@ static void CopyLoadSegments(Elf64_Ehdr* ehdr) {
 	}
 }
 
-static void ExitBootServices(EFI_HANDLE image_handle) {
-	CHAR8 memmap_buf[4096 * 4];
-	struct MemoryMap memmap = {sizeof(memmap_buf), memmap_buf, 0, 0, 0, 0};
-
-	EFI_STATUS status = GetMemoryMap(&memmap);
+static void ExitBootServices(EFI_HANDLE image_handle, struct MemoryMap* memmap) {
+	EFI_STATUS status = GetMemoryMap(memmap);
 	if (EFI_ERROR(status)) {
 		Print(u"Failed to get memory map: %r\n", status);
 		Halt();
 	}
 
-	status = gBS->ExitBootServices(image_handle, memmap.map_key);
+	status = gBS->ExitBootServices(image_handle, memmap->map_key);
 	if (EFI_ERROR(status)) {
 		Print(u"Could not exit boot service: %r\n", status);
 		Halt();
@@ -126,14 +123,17 @@ void LoadKernel(EFI_HANDLE image_handle, EFI_FILE_PROTOCOL* root_dir, struct Fra
 		Halt();
 	}
 
-	ExitBootServices(image_handle);
+	CHAR8 memmap_buf[4096 * 4];
+	struct MemoryMap memmap = {sizeof(memmap_buf), memmap_buf, 0, 0, 0, 0};
+
+	ExitBootServices(image_handle, &memmap);
 
 	// ELFファイルはエントリポイントアドレスがファイルの先頭から24バイト目から8バイト書かれる
 	UINT64 entry_addr = *(UINT64*)(kernel_first_addr + 24);
 
-	typedef void EntryPointType(const struct FrameBufferConfig*);
+	typedef void EntryPointType(const struct FrameBufferConfig*, const struct MemoryMap*);
 	EntryPointType* entry_point = (EntryPointType*)entry_addr;
 
 	// 開始
-	entry_point(config);
+	entry_point(config, &memmap);
 }

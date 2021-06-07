@@ -15,6 +15,7 @@
 #include "graphics.hpp"
 #include "interrupt.hpp"
 #include "logger.hpp"
+#include "memory_map.hpp"
 #include "mouse.hpp"
 #include "pci.hpp"
 #include "queue.hpp"
@@ -41,7 +42,7 @@ namespace {
 	}
 }
 
-extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
+extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config, const MemoryMap& memory_map) {
 	char pixel_writer_buf[sizeof(RGBResv8BitPerColorPixelWriter)];
 	PixelWriter* pixel_writer = reinterpret_cast<PixelWriter*>(pixel_writer_buf);
 
@@ -78,6 +79,29 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
 
 	printk(u8"chino chan kawaii!\n");
 	printk(u8"gochuumon wa usagi desu ka?\n");
+
+	const std::array available_memory_types{
+		MemoryType::EfiBootServicesCode,
+		MemoryType::EfiBootServicesData,
+		MemoryType::EfiConventionalMemory,
+	};
+
+	for (auto iter = reinterpret_cast<std::uintptr_t>(memory_map.buffer);
+		 iter < reinterpret_cast<std::uintptr_t>(memory_map.buffer) + memory_map.map_size;
+		 iter += memory_map.descriptor_size) {
+		auto desc = reinterpret_cast<MemoryDescriptor*>(iter);
+		for (const auto& type : available_memory_types) {
+			if (desc->type == static_cast<std::uint32_t>(type)) {
+				printk(
+					u8"type = %u, phys = %08lx - %08lx, pages = %lu, attr = %08lx\n",
+					desc->type,
+					desc->physical_start,
+					desc->physical_start + desc->number_of_pages * 4096 - 1,
+					desc->number_of_pages,
+					desc->attribute);
+			}
+		}
+	}
 
 	auto err = pci::scan_all_bus();
 	log->debug(u8"pci::scan_all_bus(): %s\n", err.name());
