@@ -22,6 +22,7 @@ add_executable(kernel.elf
 	graphics/font.cpp
 	graphics/console.cpp
 	graphics/mouse.cpp
+	graphics/window.cpp
 )
 
 target_include_directories(kernel.elf PUBLIC

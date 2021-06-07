@@ -1,6 +1,6 @@
 #include "graphics.hpp"
 
-std::uint8_t* PixelWriter::pixel_at(int x, int y) {
+std::uint8_t* DevicePixelWriter::pixel_at(int x, int y) {
 	const int pixel_position = config_.pixels_per_scan_line * y + x;
 	return config_.frame_buffer + 4 * pixel_position;
 }

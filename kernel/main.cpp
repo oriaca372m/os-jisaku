@@ -13,6 +13,7 @@
 #include "graphics/frame_buffer_config.hpp"
 #include "graphics/graphics.hpp"
 #include "graphics/mouse.hpp"
+#include "graphics/window.hpp"
 #include "interrupt.hpp"
 #include "logger.hpp"
 #include "memory_manager.hpp"
@@ -230,6 +231,12 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 			}
 		}
 	}
+
+	Window test_window(100, 100);
+	draw_filled_rectangle(*test_window.writer(), {0, 0}, {100, 100}, {0xff, 0x00, 0x00});
+	draw_filled_rectangle(*test_window.writer(), {30, 30}, {40, 40}, {0x00, 0xff, 0x00});
+
+	test_window.draw_to(*pixel_writer, {300, 300});
 
 	while (true) {
 		__asm__("cli");

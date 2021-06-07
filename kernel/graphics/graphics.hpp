@@ -8,6 +8,14 @@ struct PixelColor {
 	std::uint8_t r;
 	std::uint8_t g;
 	std::uint8_t b;
+
+	bool operator==(const PixelColor& other) const {
+		return r == other.r && g == other.g && b == other.b;
+	}
+
+	bool operator!=(const PixelColor& other) const {
+		return !(*this == other);
+	}
 };
 
 template <typename T>
@@ -25,10 +33,14 @@ struct Vector2D {
 
 class PixelWriter {
 public:
-	PixelWriter(const FrameBufferConfig& config) : config_{config} {};
 	virtual ~PixelWriter() = default;
 
 	virtual void write(int x, int y, const PixelColor& c) = 0;
+};
+
+class DevicePixelWriter : public PixelWriter {
+public:
+	DevicePixelWriter(const FrameBufferConfig& config) : config_{config} {};
 
 protected:
 	std::uint8_t* pixel_at(int x, int y);
@@ -37,14 +49,14 @@ private:
 	const FrameBufferConfig config_;
 };
 
-class RGBResv8BitPerColorPixelWriter final : public PixelWriter {
-	using PixelWriter::PixelWriter;
+class RGBResv8BitPerColorPixelWriter final : public DevicePixelWriter {
+	using DevicePixelWriter::DevicePixelWriter;
 
 	void write(int x, int y, const PixelColor& c) override;
 };
 
-class BGRResv8BitPerColorPixelWriter final : public PixelWriter {
-	using PixelWriter::PixelWriter;
+class BGRResv8BitPerColorPixelWriter final : public DevicePixelWriter {
+	using DevicePixelWriter::DevicePixelWriter;
 
 	void write(int x, int y, const PixelColor& c) override;
 };
