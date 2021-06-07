@@ -6,28 +6,25 @@
 #include "logger.hpp"
 #include "utils.hpp"
 
-extern "C" caddr_t sbrk(int incr) {
-	return nullptr;
-}
-
-extern "C" void _exit() {
-	while (true) {
-		__asm__("hlt");
-	}
-}
-
-extern "C" int getpid() {
-	return 1;
-}
-
-extern "C" int kill(int pid, int sig) {
-	errno = EINVAL;
-	return -1;
-}
-
 [[noreturn]] void bad_call(const char* name) {
 	log->error(u8"bad %s call!\n", name);
 	halt();
+}
+
+extern "C" caddr_t sbrk(int incr) {
+	bad_call("sbrk()");
+}
+
+extern "C" void _exit() {
+	bad_call("exit()");
+}
+
+extern "C" int getpid() {
+	bad_call("getpid()");
+}
+
+extern "C" int kill(int pid, int sig) {
+	bad_call("kill()");
 }
 
 void* operator new(std::size_t) {
@@ -37,6 +34,7 @@ void* operator new(std::size_t) {
 void operator delete(void*) noexcept {
 	bad_call(u8"delete(void*)");
 }
+
 void operator delete(void*, std::align_val_t) noexcept {
 	bad_call(u8"delete(void*, std::align_val_t)");
 }
