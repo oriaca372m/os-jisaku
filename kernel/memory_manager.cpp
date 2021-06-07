@@ -1,5 +1,7 @@
 #include "memory_manager.hpp"
 
+BitmapMemoryManager::BitmapMemoryManager() : alloc_map_{}, range_begin_{FrameID(0)}, range_end_{FrameID(frame_count)} {}
+
 void BitmapMemoryManager::mark_allocated(FrameID start_frame, std::size_t num_frames) {
 	for (std::size_t i = 0; i < num_frames; ++i) {
 		set_bit(FrameID(start_frame.id() + i), true);

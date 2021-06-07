@@ -15,6 +15,7 @@
 #include "graphics.hpp"
 #include "interrupt.hpp"
 #include "logger.hpp"
+#include "memory_manager.hpp"
 #include "memory_map.hpp"
 #include "mouse.hpp"
 #include "paging.hpp"
@@ -42,6 +43,9 @@ namespace {
 		main_queue->push(Message{Message::Type::InterruptXHCI});
 		notify_end_of_interrput();
 	}
+
+	alignas(BitmapMemoryManager) std::uint8_t memory_manager_buf[sizeof(BitmapMemoryManager)];
+	BitmapMemoryManager* memory_manager = reinterpret_cast<BitmapMemoryManager*>(&memory_manager_buf);
 }
 
 alignas(16) std::uint8_t kernel_main_stack[1024 * 1024];
@@ -60,6 +64,34 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 
 	// ページングの設定
 	setup_identity_page_table();
+
+	// メモリマネージャの設定
+	{
+		new (memory_manager) BitmapMemoryManager();
+		const auto memory_map_base = reinterpret_cast<std::uintptr_t>(memory_map.buffer);
+
+		std::uintptr_t available_end = 0;
+		for (std::uintptr_t iter = memory_map_base; iter < memory_map_base + memory_map.map_size;
+			 iter += memory_map.descriptor_size) {
+			auto desc = reinterpret_cast<const MemoryDescriptor*>(iter);
+
+			if (available_end < desc->physical_start) {
+				memory_manager->mark_allocated(
+					FrameID(available_end / bytes_per_frame), (desc->physical_start - available_end) / bytes_per_frame);
+			}
+
+			if (is_available(static_cast<MemoryType>(desc->type))) {
+				const auto physical_end = desc->physical_start + desc->number_of_pages * uefi_page_size;
+				available_end = physical_end;
+			} else {
+				memory_manager->mark_allocated(
+					FrameID(desc->physical_start / bytes_per_frame),
+					desc->number_of_pages * uefi_page_size / bytes_per_frame);
+			}
+		}
+
+		memory_manager->set_memory_range(FrameID(1), FrameID(available_end / bytes_per_frame));
+	}
 
 	char pixel_writer_buf[sizeof(RGBResv8BitPerColorPixelWriter)];
 	PixelWriter* pixel_writer = reinterpret_cast<PixelWriter*>(pixel_writer_buf);
