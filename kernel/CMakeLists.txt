@@ -8,20 +8,20 @@ set(CMAKE_CXX_LINK_EXECUTABLE "/usr/bin/ld.lld <LINK_FLAGS> <OBJECTS> <LINK_LIBR
 
 add_executable(kernel.elf
 	main.cpp
-	graphics.cpp
-	font.cpp
 	support_functions.cpp
-	console.cpp
 	pci.cpp
 	utils.cpp
 	kernel_interface_impl.cpp
 	logger.cpp
-	mouse.cpp
 	interrupt.cpp
 	segment.cpp
 	paging.cpp
 	memory_manager.cpp
 	sbrk.cpp
+	graphics/graphics.cpp
+	graphics/font.cpp
+	graphics/console.cpp
+	graphics/mouse.cpp
 )
 
 target_include_directories(kernel.elf PUBLIC

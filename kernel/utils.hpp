@@ -2,7 +2,7 @@
 
 #include <cstdio>
 
-#include "console.hpp"
+#include "graphics/console.hpp"
 
 template <typename... Args>
 int printk(const char* format, Args... args) {

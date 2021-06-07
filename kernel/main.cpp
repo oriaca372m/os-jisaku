@@ -9,15 +9,14 @@
 #include <usb/xhci/trb.hpp>
 #include <usb/xhci/xhci.hpp>
 
-#include "console.hpp"
-#include "font.hpp"
-#include "frame_buffer_config.hpp"
-#include "graphics.hpp"
+#include "graphics/console.hpp"
+#include "graphics/frame_buffer_config.hpp"
+#include "graphics/graphics.hpp"
+#include "graphics/mouse.hpp"
 #include "interrupt.hpp"
 #include "logger.hpp"
 #include "memory_manager.hpp"
 #include "memory_map.hpp"
-#include "mouse.hpp"
 #include "paging.hpp"
 #include "pci.hpp"
 #include "queue.hpp"

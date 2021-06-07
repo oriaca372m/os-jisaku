@@ -4,7 +4,7 @@
 
 #include <kernel_interface/logger.hpp>
 
-#include "console.hpp"
+#include "graphics/console.hpp"
 
 namespace logger {
 	using namespace kernel_interface::logger;
