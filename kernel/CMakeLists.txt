@@ -21,6 +21,7 @@ add_executable(kernel.elf
 	segment.cpp
 	paging.cpp
 	memory_manager.cpp
+	sbrk.cpp
 )
 
 target_include_directories(kernel.elf PUBLIC

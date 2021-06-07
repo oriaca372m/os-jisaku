@@ -21,6 +21,7 @@
 #include "paging.hpp"
 #include "pci.hpp"
 #include "queue.hpp"
+#include "sbrk.hpp"
 #include "segment.hpp"
 #include "utils.hpp"
 
@@ -111,6 +112,11 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 	auto logger_proxy = logger::LoggerProxy(console_logger);
 	kernel_interface::logger::default_logger = &console_logger;
 	log = &logger_proxy;
+
+	if (auto err = initialize_heap(*memory_manager)) {
+		log->error("Failed to allocate pages: %s\n", err.name());
+		halt();
+	}
 
 	MouseCursor mouse_cursor_instance(pixel_writer, desktop_bg_color, {200, 100});
 	mouse_cursor = &mouse_cursor_instance;
