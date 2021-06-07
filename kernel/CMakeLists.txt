@@ -20,6 +20,7 @@ add_executable(kernel.elf
 	interrupt.cpp
 	segment.cpp
 	paging.cpp
+	memory_manager.cpp
 )
 
 target_include_directories(kernel.elf PUBLIC
@@ -68,7 +69,11 @@ add_library(shinonome_font_bin OBJECT IMPORTED)
 set_property(TARGET shinonome_font_bin PROPERTY IMPORTED_OBJECTS "${CMAKE_CURRENT_BINARY_DIR}/hankaku.o")
 
 target_link_libraries(kernel.elf PUBLIC shinonome_font_bin)
-target_link_libraries(kernel.elf PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../stdlib/build/lib/libc.a")
+target_link_libraries(kernel.elf PUBLIC
+	"${CMAKE_CURRENT_SOURCE_DIR}/../stdlib/build/lib/libc.a"
+	"${CMAKE_CURRENT_SOURCE_DIR}/../stdlib/build/lib/libc++.a"
+	"${CMAKE_CURRENT_SOURCE_DIR}/../stdlib/build/lib/libc++abi.a"
+)
 
 add_subdirectory(asmfunc)
 target_link_libraries(kernel.elf PUBLIC asmfunc)

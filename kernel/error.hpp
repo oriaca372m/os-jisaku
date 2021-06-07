@@ -11,6 +11,7 @@ public:
 		IndexOutOfRange,
 		NotImplemented,
 		NoPCIMSI,
+		NoEnoughMemory,
 		LastOfCode,
 	};
 
@@ -37,6 +38,7 @@ private:
 		u8"IndexOutOfRange",
 		u8"NotImplemented",
 		u8"NoPCIMSI",
+		u8"NoEnoughMemory",
 	};
 
 	Code code_;
