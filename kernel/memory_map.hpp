@@ -37,3 +37,10 @@ enum class MemoryType : std::uint32_t {
 	EfiPersistentMemory,
 	EfiMaxMemoryType
 };
+
+inline bool is_available(MemoryType memory_type) {
+	return memory_type == MemoryType::EfiBootServicesCode || memory_type == MemoryType::EfiBootServicesData ||
+		memory_type == MemoryType::EfiConventionalMemory;
+}
+
+constexpr int uefi_page_size = 4096;
