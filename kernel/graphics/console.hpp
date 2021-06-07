@@ -7,15 +7,17 @@ public:
 	static const int rows = 25;
 	static const int columns = 80;
 
-	Console(PixelWriter& writer, const PixelColor& fg_color, const PixelColor& bg_color);
+	Console(const PixelColor& fg_color, const PixelColor& bg_color);
+	void set_pixel_writer(PixelWriter* writer);
+
 	void put_string(const char* s);
+	void redraw();
 
 private:
 	void new_line();
-	void redraw();
 	void draw_char_at(int x, int y, char c);
 
-	PixelWriter& writer_;
+	PixelWriter* writer_ = nullptr;
 	const PixelColor fg_color_;
 	const PixelColor bg_color_;
 	char buffer_[rows][columns];

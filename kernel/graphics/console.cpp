@@ -3,8 +3,11 @@
 
 #include <cstring>
 
-Console::Console(PixelWriter& writer, const PixelColor& fg_color, const PixelColor& bg_color) :
-	writer_(writer), fg_color_(fg_color), bg_color_(bg_color), buffer_{}, cursor_row_(0), cursor_column_(0) {
+Console::Console(const PixelColor& fg_color, const PixelColor& bg_color) :
+	fg_color_(fg_color), bg_color_(bg_color), buffer_{}, cursor_row_(0), cursor_column_(0) {}
+
+void Console::set_pixel_writer(PixelWriter* writer) {
+	writer_ = writer;
 	redraw();
 }
 
@@ -17,7 +20,9 @@ void Console::put_string(const char* s) {
 
 	retry:
 		if (cursor_column_ < columns) {
-			draw_char_at(cursor_column_, cursor_row_, *s);
+			if (writer_ != nullptr) {
+				draw_char_at(cursor_column_, cursor_row_, *s);
+			}
 			buffer_[cursor_row_][cursor_column_] = *s;
 			++cursor_column_;
 		} else {
@@ -40,9 +45,13 @@ void Console::new_line() {
 }
 
 void Console::redraw() {
+	if (writer_ == nullptr) {
+		return;
+	}
+
 	for (int y = 0; y < 16 * rows; ++y) {
 		for (int x = 0; x < 8 * columns; ++x) {
-			writer_.write(x, y, bg_color_);
+			writer_->write(x, y, bg_color_);
 		}
 	}
 
@@ -58,5 +67,5 @@ void Console::draw_char_at(int x, int y, char c) {
 		return;
 	}
 
-	write_ascii(writer_, x * 8, y * 16, c, fg_color_);
+	write_ascii(*writer_, x * 8, y * 16, c, fg_color_);
 }

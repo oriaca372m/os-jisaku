@@ -12,6 +12,7 @@
 #include "graphics/console.hpp"
 #include "graphics/frame_buffer_config.hpp"
 #include "graphics/graphics.hpp"
+#include "graphics/layer.hpp"
 #include "graphics/mouse.hpp"
 #include "graphics/window.hpp"
 #include "interrupt.hpp"
@@ -27,9 +28,11 @@
 
 namespace {
 	MouseCursor* mouse_cursor;
+	unsigned int mouse_layer_id;
 
-	void mouse_observer(int8_t displacement_x, int8_t displacement_y) {
-		mouse_cursor->move_relative({displacement_x, displacement_y});
+	void mouse_observer(int8_t dx, int8_t dy) {
+		layer_manager->move_relative(mouse_layer_id, {dx, dy});
+		layer_manager->draw();
 	}
 
 	struct Message {
@@ -105,7 +108,7 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 
 	const PixelColor desktop_fg_color{0xc8, 0xc8, 0xc6};
 	const PixelColor desktop_bg_color{0x1d, 0x1f, 0x21};
-	Console console_instance(*pixel_writer, desktop_fg_color, desktop_bg_color);
+	Console console_instance(desktop_fg_color, desktop_bg_color);
 	global_console = &console_instance;
 
 	auto console_logger = logger::ConsoleLogger(console_instance, logger::LogLevel::Info);
@@ -128,10 +131,28 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 	const int frame_width = frame_buffer_config.horizontal_resolution;
 	const int frame_height = frame_buffer_config.vertical_resolution;
 
-	draw_filled_rectangle(*pixel_writer, {0, 0}, {frame_width, frame_height - 50}, desktop_bg_color);
-	draw_filled_rectangle(*pixel_writer, {0, frame_height - 50}, {frame_width, 50}, {1, 8, 17});
-	draw_filled_rectangle(*pixel_writer, {0, frame_height - 50}, {frame_width / 5, 50}, {80, 80, 80});
-	draw_rectangle(*pixel_writer, {10, frame_height - 40}, {30, 30}, {160, 160, 160});
+	auto bg_window = std::make_shared<Window>(frame_width, frame_height);
+	auto bg_window_writer = bg_window->writer();
+
+	draw_filled_rectangle(*bg_window_writer, {0, 0}, {frame_width, frame_height - 50}, desktop_bg_color);
+	draw_filled_rectangle(*bg_window_writer, {0, frame_height - 50}, {frame_width, 50}, {1, 8, 17});
+	draw_filled_rectangle(*bg_window_writer, {0, frame_height - 50}, {frame_width / 5, 50}, {80, 80, 80});
+	draw_rectangle(*bg_window_writer, {10, frame_height - 40}, {30, 30}, {160, 160, 160});
+
+	bg_window->draw_to(*pixel_writer, {0, 0});
+	global_console->set_pixel_writer(bg_window_writer);
+
+	layer_manager = new LayerManager();
+	layer_manager->set_writer(pixel_writer);
+
+	const auto bg_layer_id = layer_manager->new_layer().set_window(bg_window).move({0, 0}).id();
+
+	mouse_layer_id = layer_manager->new_layer().set_window(make_mouse_window()).move({200, 200}).id();
+
+	layer_manager->up_down(bg_layer_id, 0);
+	layer_manager->up_down(mouse_layer_id, 1);
+
+	layer_manager->draw();
 
 	printk(u8"chino chan kawaii!\n");
 	printk(u8"gochuumon wa usagi desu ka?\n");
@@ -231,12 +252,6 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 			}
 		}
 	}
-
-	Window test_window(100, 100);
-	draw_filled_rectangle(*test_window.writer(), {0, 0}, {100, 100}, {0xff, 0x00, 0x00});
-	draw_filled_rectangle(*test_window.writer(), {30, 30}, {40, 40}, {0x00, 0xff, 0x00});
-
-	test_window.draw_to(*pixel_writer, {300, 300});
 
 	while (true) {
 		__asm__("cli");

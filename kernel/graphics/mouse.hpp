@@ -1,6 +1,9 @@
 #pragma once
 
 #include "graphics.hpp"
+#include "window.hpp"
+
+#include <memory>
 
 class MouseCursor final {
 public:
@@ -12,3 +15,5 @@ private:
 	PixelColor erase_color_;
 	Vector2D<int> position_;
 };
+
+std::shared_ptr<Window> make_mouse_window();
