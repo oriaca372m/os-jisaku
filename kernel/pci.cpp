@@ -179,9 +179,9 @@ namespace pci {
 	union CapabilityHeader {
 		std::uint32_t data;
 		struct {
-			std::uint8_t cap_id : 8;
-			std::uint8_t next_ptr : 8;
-			std::uint16_t cap : 16;
+			std::uint32_t cap_id : 8;
+			std::uint32_t next_ptr : 8;
+			std::uint32_t cap : 16;
 		} __attribute__((packed)) bits;
 	} __attribute__((packed));
 
@@ -189,14 +189,14 @@ namespace pci {
 		union {
 			std::uint32_t data;
 			struct {
-				std::uint8_t cap_id : 8;
-				std::uint8_t next_ptr : 8;
-				std::uint8_t msi_enable : 1;
-				std::uint8_t multi_msg_capable : 3;
-				std::uint8_t multi_msg_enable : 3;
-				std::uint8_t addr_64_capable : 1;
-				std::uint8_t per_vector_mask_capable : 1;
-				std::uint8_t : 7;
+				std::uint32_t cap_id : 8;
+				std::uint32_t next_ptr : 8;
+				std::uint32_t msi_enable : 1;
+				std::uint32_t multi_msg_capable : 3;
+				std::uint32_t multi_msg_enable : 3;
+				std::uint32_t addr_64_capable : 1;
+				std::uint32_t per_vector_mask_capable : 1;
+				std::uint32_t : 7;
 			} __attribute__((packed)) bits;
 		} __attribute__((packed)) header;
 
