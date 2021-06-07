@@ -38,6 +38,47 @@ load_idt:
 	pop %rbp
 	ret
 
+# void load_gdp(std::uint16_t limit, std::uint64_t offset)
+.global load_gdp
+load_gdp:
+	push %rbp
+	mov %rsp, %rbp
+	sub $10, %rsp
+	# limit
+	mov %di, (%rsp)
+	# offset
+	mov %rsi, 2(%rsp)
+	lgdt (%rsp)
+	mov %rbp, %rsp
+	pop %rbp
+	ret
+
+# void set_ds_all(std::uint16_t value)
+.global set_ds_all
+set_ds_all:
+	mov %di, %ds
+	mov %di, %es
+	mov %di, %fs
+	mov %di, %gs
+	ret
+
+# void set_cs_ss(std::uint16_t cs, std::uint16_t ss)
+.global set_cs_ss
+set_cs_ss:
+	push %rbp
+	mov %rsp, %rbp
+	# スタックセグメントレジスタにssをセット
+	mov %si, %ss
+	mov $set_cs_ss_next, %rax
+	# コードセグメントレジスタにcsをセット
+	push %rdi
+	push %rax
+	lretq
+set_cs_ss_next:
+	mov %rbp, %rsp
+	pop %rbp
+	ret
+
 .global KernelMain
 KernelMain:
 	mov $kernel_main_stack + 1024 * 1024, %rsp

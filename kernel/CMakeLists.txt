@@ -18,6 +18,7 @@ add_executable(kernel.elf
 	logger.cpp
 	mouse.cpp
 	interrupt.cpp
+	segment.cpp
 )
 
 target_include_directories(kernel.elf PUBLIC

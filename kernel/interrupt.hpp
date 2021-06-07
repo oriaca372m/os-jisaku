@@ -3,15 +3,7 @@
 #include <array>
 #include <cstdint>
 
-enum class DescriptorType {
-	Upper8Bytes = 0,
-	LDT = 2,
-	TSSAvailable = 9,
-	TSSBusy = 11,
-	CallGate = 12,
-	InterruptGate = 14,
-	TrapGate = 15,
-};
+#include "x86_descriptor.hpp"
 
 union InterruptDescriptorAttribute {
 	std::uint16_t data;

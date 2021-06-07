@@ -19,6 +19,7 @@
 #include "mouse.hpp"
 #include "pci.hpp"
 #include "queue.hpp"
+#include "segment.hpp"
 #include "utils.hpp"
 
 namespace {
@@ -48,6 +49,12 @@ extern "C" void
 kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const MemoryMap& memory_map_ref) {
 	auto frame_buffer_config = frame_buffer_config_ref;
 	auto memory_map = memory_map_ref;
+
+	setup_segments();
+	const std::uint16_t kernel_cs = 1 << 3;
+	const std::uint16_t kernel_ss = 2 << 3;
+	set_ds_all(0);
+	set_cs_ss(kernel_cs, kernel_ss);
 
 	char pixel_writer_buf[sizeof(RGBResv8BitPerColorPixelWriter)];
 	PixelWriter* pixel_writer = reinterpret_cast<PixelWriter*>(pixel_writer_buf);
