@@ -37,3 +37,8 @@ load_idt:
 	mov %rbp, %rsp
 	pop %rbp
 	ret
+
+.global KernelMain
+KernelMain:
+	mov $kernel_main_stack + 1024 * 1024, %rsp
+	jmp kernel_main_new_stack

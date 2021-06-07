@@ -42,7 +42,13 @@ namespace {
 	}
 }
 
-extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config, const MemoryMap& memory_map) {
+alignas(16) std::uint8_t kernel_main_stack[1024 * 1024];
+
+extern "C" void
+kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const MemoryMap& memory_map_ref) {
+	auto frame_buffer_config = frame_buffer_config_ref;
+	auto memory_map = memory_map_ref;
+
 	char pixel_writer_buf[sizeof(RGBResv8BitPerColorPixelWriter)];
 	PixelWriter* pixel_writer = reinterpret_cast<PixelWriter*>(pixel_writer_buf);
 
