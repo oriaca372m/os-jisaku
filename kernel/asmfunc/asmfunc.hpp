@@ -7,3 +7,4 @@ extern "C" void load_idt(std::uint16_t limit, std::uint64_t offset);
 extern "C" void load_gdp(std::uint16_t limit, std::uint64_t offset);
 extern "C" void set_ds_all(std::uint16_t value);
 extern "C" void set_cs_ss(std::uint16_t cs, std::uint16_t ss);
+extern "C" void set_cr3(std::uint64_t value);

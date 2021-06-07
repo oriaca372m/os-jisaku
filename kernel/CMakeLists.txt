@@ -19,6 +19,7 @@ add_executable(kernel.elf
 	mouse.cpp
 	interrupt.cpp
 	segment.cpp
+	paging.cpp
 )
 
 target_include_directories(kernel.elf PUBLIC

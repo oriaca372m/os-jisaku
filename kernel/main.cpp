@@ -17,6 +17,7 @@
 #include "logger.hpp"
 #include "memory_map.hpp"
 #include "mouse.hpp"
+#include "paging.hpp"
 #include "pci.hpp"
 #include "queue.hpp"
 #include "segment.hpp"
@@ -50,11 +51,15 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 	auto frame_buffer_config = frame_buffer_config_ref;
 	auto memory_map = memory_map_ref;
 
+	// セグメンテーションの設定
 	setup_segments();
 	const std::uint16_t kernel_cs = 1 << 3;
 	const std::uint16_t kernel_ss = 2 << 3;
 	set_ds_all(0);
 	set_cs_ss(kernel_cs, kernel_ss);
+
+	// ページングの設定
+	setup_identity_page_table();
 
 	char pixel_writer_buf[sizeof(RGBResv8BitPerColorPixelWriter)];
 	PixelWriter* pixel_writer = reinterpret_cast<PixelWriter*>(pixel_writer_buf);

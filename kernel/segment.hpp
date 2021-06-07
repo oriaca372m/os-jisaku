@@ -24,4 +24,3 @@ union SegmentDescriptor {
 } __attribute__((packed));
 
 void setup_segments();
-void setup_identity_page_table();

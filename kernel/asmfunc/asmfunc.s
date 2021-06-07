@@ -79,6 +79,12 @@ set_cs_ss_next:
 	pop %rbp
 	ret
 
+# void set_cr3(std::uint64_t value)
+.global set_cr3
+set_cr3:
+	mov %rdi, %cr3
+	ret
+
 .global KernelMain
 KernelMain:
 	mov $kernel_main_stack + 1024 * 1024, %rsp
