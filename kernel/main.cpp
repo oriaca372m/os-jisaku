@@ -27,7 +27,6 @@
 #include "utils.hpp"
 
 namespace {
-	MouseCursor* mouse_cursor;
 	unsigned int mouse_layer_id;
 
 	void mouse_observer(int8_t dx, int8_t dy) {
@@ -120,9 +119,6 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 		log->error("Failed to allocate pages: %s\n", err.name());
 		halt();
 	}
-
-	MouseCursor mouse_cursor_instance(pixel_writer, desktop_bg_color, {200, 100});
-	mouse_cursor = &mouse_cursor_instance;
 
 	std::array<Message, 32> main_queue_buffer;
 	ArrayQueue<Message> main_queue_instance(main_queue_buffer);
