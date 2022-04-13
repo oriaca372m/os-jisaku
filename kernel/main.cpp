@@ -63,6 +63,27 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 	auto frame_buffer_config = frame_buffer_config_ref;
 	auto memory_map = memory_map_ref;
 
+	char fb_pixel_writer_buf[max_device_pixel_writer_size];
+	get_suitable_device_pixel_writer_traits(frame_buffer_config.pixel_format)
+		.construct(frame_buffer_config, fb_pixel_writer_buf);
+	auto fb_pixel_writer = reinterpret_cast<DevicePixelWriter*>(fb_pixel_writer_buf);
+
+	const PixelColor desktop_fg_color{0xc8, 0xc8, 0xc6};
+	const PixelColor desktop_bg_color{0x1d, 0x1f, 0x21};
+
+	const int frame_width = frame_buffer_config.horizontal_resolution;
+	const int frame_height = frame_buffer_config.vertical_resolution;
+
+	Console console_instance(desktop_fg_color, desktop_bg_color);
+	global_console = &console_instance;
+
+	console_instance.set_pixel_writer(fb_pixel_writer);
+
+	auto console_logger = logger::ConsoleLogger(console_instance, logger::LogLevel::Info);
+	auto logger_proxy = logger::LoggerProxy(console_logger);
+	kernel_interface::logger::default_logger = &console_logger;
+	log = &logger_proxy;
+
 	// セグメンテーションの設定
 	setup_segments();
 	const std::uint16_t kernel_cs = 1 << 3;
@@ -102,28 +123,15 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 	}
 
 	if (auto err = initialize_heap(*memory_manager)) {
-		// log->error("Failed to allocate pages: %s\n", err.name());
+		log->error("Failed to allocate pages: %s\n", err.name());
 		halt();
 	}
-
-	const PixelColor desktop_fg_color{0xc8, 0xc8, 0xc6};
-	const PixelColor desktop_bg_color{0x1d, 0x1f, 0x21};
-	Console console_instance(desktop_fg_color, desktop_bg_color);
-	global_console = &console_instance;
-
-	auto console_logger = logger::ConsoleLogger(console_instance, logger::LogLevel::Info);
-	auto logger_proxy = logger::LoggerProxy(console_logger);
-	kernel_interface::logger::default_logger = &console_logger;
-	log = &logger_proxy;
 
 	initialize_lapic_timer();
 
 	std::array<Message, 32> main_queue_buffer;
 	ArrayQueue<Message> main_queue_instance(main_queue_buffer);
 	main_queue = &main_queue_instance;
-
-	const int frame_width = frame_buffer_config.horizontal_resolution;
-	const int frame_height = frame_buffer_config.vertical_resolution;
 
 	auto bg_window = std::make_shared<Window>(frame_width, frame_height, frame_buffer_config.pixel_format);
 	auto bg_window_writer = bg_window->writer();
