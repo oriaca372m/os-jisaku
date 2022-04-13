@@ -26,6 +26,7 @@ add_executable(kernel.elf
 	graphics/window.cpp
 	graphics/layer.cpp
 	graphics/frame_buffer.cpp
+	graphics/device_pixel_writer.cpp
 )
 
 target_include_directories(kernel.elf PUBLIC

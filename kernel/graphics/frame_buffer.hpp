@@ -4,8 +4,8 @@
 #include <vector>
 
 #include "../error.hpp"
+#include "device_pixel_writer.hpp"
 #include "frame_buffer_config.hpp"
-#include "graphics.hpp"
 
 class FrameBuffer final {
 public:
