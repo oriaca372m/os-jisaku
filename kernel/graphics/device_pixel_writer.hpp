@@ -9,9 +9,6 @@ public:
 	DevicePixelWriter(const FrameBufferConfig& config) : config_{config} {};
 
 protected:
-	std::uint8_t* pixel_at(int x, int y);
-
-private:
 	const FrameBufferConfig config_;
 };
 
@@ -65,5 +62,5 @@ struct BGRResv8BitPerColorPixelWriterTraits final : public DevicePixelWriterTrai
 };
 
 inline constexpr std::size_t max_device_pixel_writer_size =
-	std::max(sizeof(RGBResv8BitPerColorPixelWriter), sizeof(BGRResv8BitPerColorPixelWriterTraits));
+	std::max(sizeof(RGBResv8BitPerColorPixelWriter), sizeof(BGRResv8BitPerColorPixelWriter));
 const DevicePixelWriterTraits& get_suitable_device_pixel_writer_traits(PixelFormat pixel_format);
