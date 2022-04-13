@@ -49,4 +49,4 @@ private:
 	Layer* find_layer(unsigned int id);
 };
 
-inline LayerManager* layer_manager;
+inline LayerManager* layer_manager = nullptr;

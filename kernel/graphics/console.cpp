@@ -1,7 +1,8 @@
+#include <cstring>
+
 #include "console.hpp"
 #include "font.hpp"
-
-#include <cstring>
+#include "graphics/layer.hpp"
 
 Console::Console(const PixelColor& fg_color, const PixelColor& bg_color) :
 	fg_color_(fg_color), bg_color_(bg_color), buffer_{}, cursor_row_(0), cursor_column_(0) {}
@@ -29,6 +30,10 @@ void Console::put_string(const char* s) {
 			new_line();
 			goto retry;
 		}
+	}
+
+	if (layer_manager != nullptr) {
+		layer_manager->draw();
 	}
 }
 
