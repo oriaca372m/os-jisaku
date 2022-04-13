@@ -1,25 +1,27 @@
 #include "device_pixel_writer.hpp"
 
-namespace {
-	template <typename T>
-	inline std::uint8_t* pixel_at(const FrameBufferConfig& config, int x, int y) {
-		const int pixel_position = config.pixels_per_scan_line * y + x;
-		return config.frame_buffer + T::bytes_per_pixel * pixel_position;
-	}
-}
-
 void RGBResv8BitPerColorPixelWriter::write(int x, int y, const PixelColor& c) {
-	auto p = pixel_at<RGBResv8BitPerColorPixelWriter>(config_, x, y);
+	auto p = get_pixel_buf_at(x, y);
 	p[0] = c.r;
 	p[1] = c.g;
 	p[2] = c.b;
 }
 
+PixelColor RGBResv8BitPerColorPixelWriter::get_pixel_at(int x, int y) const {
+	auto p = get_pixel_buf_at(x, y);
+	return {p[0], p[1], p[2]};
+}
+
 void BGRResv8BitPerColorPixelWriter::write(int x, int y, const PixelColor& c) {
-	auto p = pixel_at<BGRResv8BitPerColorPixelWriter>(config_, x, y);
+	auto p = get_pixel_buf_at(x, y);
 	p[0] = c.b;
 	p[1] = c.g;
 	p[2] = c.r;
+}
+
+PixelColor BGRResv8BitPerColorPixelWriter::get_pixel_at(int x, int y) const {
+	auto p = get_pixel_buf_at(x, y);
+	return {p[2], p[1], p[0]};
 }
 
 const RGBResv8BitPerColorPixelWriterTraits RGBResv8BitPerColorPixelWriterTraits::instance{};

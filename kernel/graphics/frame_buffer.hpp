@@ -15,6 +15,10 @@ public:
 		return *writer_;
 	}
 
+	const DevicePixelWriter& writer() const {
+		return *writer_;
+	}
+
 	Error copy_from(const FrameBuffer& src, Vector2D<int> to_pos);
 
 private:

@@ -8,8 +8,36 @@ class DevicePixelWriter : public PixelWriter {
 public:
 	DevicePixelWriter(const FrameBufferConfig& config) : config_{config} {};
 
+	virtual void write_pixel_buf_at(int x, int y, const std::uint8_t* buf) = 0;
+
+	virtual const std::uint8_t* get_pixel_buf_at(int x, int y) const = 0;
+	virtual PixelColor get_pixel_at(int x, int y) const = 0;
+
 protected:
 	const FrameBufferConfig config_;
+};
+
+template <std::size_t bpp>
+class DevicePixelWriterBase : public DevicePixelWriter {
+public:
+	using DevicePixelWriter::DevicePixelWriter;
+
+	void write_pixel_buf_at(int x, int y, const std::uint8_t* buf) override final {
+		std::memcpy(get_pixel_buf_at(x, y), buf, bytes_per_pixel);
+	}
+
+	const std::uint8_t* get_pixel_buf_at(int x, int y) const override final {
+		const int pixel_position = config_.pixels_per_scan_line * y + x;
+		return config_.frame_buffer + bytes_per_pixel * pixel_position;
+	}
+
+	static constexpr std::size_t bytes_per_pixel = bpp;
+
+protected:
+	std::uint8_t* get_pixel_buf_at(int x, int y) {
+		const int pixel_position = config_.pixels_per_scan_line * y + x;
+		return config_.frame_buffer + bytes_per_pixel * pixel_position;
+	}
 };
 
 struct DevicePixelWriterTraits {
@@ -35,26 +63,24 @@ struct DevicePixelWriterTraitsBase : public DevicePixelWriterTraits {
 	}
 };
 
-class RGBResv8BitPerColorPixelWriter final : public DevicePixelWriter {
+class RGBResv8BitPerColorPixelWriter final : public DevicePixelWriterBase<4> {
 public:
-	using DevicePixelWriter::DevicePixelWriter;
+	using DevicePixelWriterBase::DevicePixelWriterBase;
 
 	void write(int x, int y, const PixelColor& c) override;
-
-	static constexpr std::size_t bytes_per_pixel = 4;
+	PixelColor get_pixel_at(int x, int y) const override;
 };
 
 struct RGBResv8BitPerColorPixelWriterTraits final : public DevicePixelWriterTraitsBase<RGBResv8BitPerColorPixelWriter> {
 	static const RGBResv8BitPerColorPixelWriterTraits instance;
 };
 
-class BGRResv8BitPerColorPixelWriter final : public DevicePixelWriter {
+class BGRResv8BitPerColorPixelWriter final : public DevicePixelWriterBase<4> {
 public:
-	using DevicePixelWriter::DevicePixelWriter;
+	using DevicePixelWriterBase::DevicePixelWriterBase;
 
 	void write(int x, int y, const PixelColor& c) override;
-
-	static constexpr std::size_t bytes_per_pixel = 4;
+	PixelColor get_pixel_at(int x, int y) const override;
 };
 
 struct BGRResv8BitPerColorPixelWriterTraits final : public DevicePixelWriterTraitsBase<BGRResv8BitPerColorPixelWriter> {
