@@ -21,4 +21,6 @@ private:
 	FrameBufferConfig config_;
 	std::vector<std::uint8_t> buffer_{};
 	std::unique_ptr<DevicePixelWriter> writer_{};
+
+	const DevicePixelWriterTraits* writer_traits_;
 };

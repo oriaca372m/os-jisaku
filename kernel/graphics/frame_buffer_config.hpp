@@ -8,15 +8,6 @@ enum class PixelFormat {
 	BGRResv8BitPerColor,
 };
 
-inline std::size_t bytes_per_pixel(PixelFormat pixel_format) {
-	switch (pixel_format) {
-	case PixelFormat::RGBResv8BitPerColor:
-		return 4;
-	case PixelFormat::BGRResv8BitPerColor:
-		return 4;
-	}
-}
-
 struct FrameBufferConfig {
 	std::uint8_t* frame_buffer;
 	std::uint32_t pixels_per_scan_line;

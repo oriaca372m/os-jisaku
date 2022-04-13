@@ -19,11 +19,14 @@ void BGRResv8BitPerColorPixelWriter::write(int x, int y, const PixelColor& c) {
 	p[2] = c.r;
 }
 
-std::unique_ptr<DevicePixelWriter> make_suitable_device_pixel_writer(const FrameBufferConfig& config) {
-	switch (config.pixel_format) {
+const RGBResv8BitPerColorPixelWriterTraits RGBResv8BitPerColorPixelWriterTraits::instance{};
+const BGRResv8BitPerColorPixelWriterTraits BGRResv8BitPerColorPixelWriterTraits::instance{};
+
+const DevicePixelWriterTraits& get_suitable_device_pixel_writer_traits(PixelFormat pixel_format) {
+	switch (pixel_format) {
 	case PixelFormat::RGBResv8BitPerColor:
-		return std::make_unique<RGBResv8BitPerColorPixelWriter>(config);
+		return RGBResv8BitPerColorPixelWriterTraits::instance;
 	case PixelFormat::BGRResv8BitPerColor:
-		return std::make_unique<BGRResv8BitPerColorPixelWriter>(config);
+		return BGRResv8BitPerColorPixelWriterTraits::instance;
 	}
 }
