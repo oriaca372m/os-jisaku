@@ -3,8 +3,8 @@
 #include <memory>
 #include <vector>
 
-#include "../error.hpp"
 #include "device_pixel_writer.hpp"
+#include "error.hpp"
 #include "frame_buffer_config.hpp"
 
 class FrameBuffer final {
