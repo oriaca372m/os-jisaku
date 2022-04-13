@@ -47,8 +47,8 @@ namespace {
 	}
 }
 
-std::shared_ptr<Window> make_mouse_window() {
-	const auto window = std::make_shared<Window>(mouse_cursor_width, mouse_cursor_height);
+std::shared_ptr<Window> make_mouse_window(PixelFormat pixel_format) {
+	const auto window = std::make_shared<Window>(mouse_cursor_width, mouse_cursor_height, pixel_format);
 	window->set_transparent_color(PixelColor{0xFF, 0x00, 0x00});
 	draw_mouse_cursor(window->writer(), {0, 0});
 	return window;

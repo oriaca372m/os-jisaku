@@ -25,6 +25,7 @@ add_executable(kernel.elf
 	graphics/mouse.cpp
 	graphics/window.cpp
 	graphics/layer.cpp
+	graphics/frame_buffer.cpp
 )
 
 target_include_directories(kernel.elf PUBLIC

@@ -2,4 +2,4 @@
 
 #include "window.hpp"
 
-std::shared_ptr<Window> make_mouse_window();
+std::shared_ptr<Window> make_mouse_window(PixelFormat pixel_format);

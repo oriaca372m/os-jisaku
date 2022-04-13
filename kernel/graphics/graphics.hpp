@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 
 #include "frame_buffer_config.hpp"
 
@@ -60,6 +61,8 @@ class BGRResv8BitPerColorPixelWriter final : public DevicePixelWriter {
 
 	void write(int x, int y, const PixelColor& c) override;
 };
+
+std::unique_ptr<DevicePixelWriter> make_suitable_device_pixel_writer(const FrameBufferConfig& config);
 
 void draw_filled_rectangle(
 	PixelWriter& writer,

@@ -12,6 +12,7 @@ public:
 		NotImplemented,
 		NoPCIMSI,
 		NoEnoughMemory,
+		UnknownPixelFormat,
 		LastOfCode,
 	};
 

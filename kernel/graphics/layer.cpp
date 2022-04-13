@@ -28,12 +28,16 @@ Layer& Layer::move_relative(Vector2D<int> pos_diff) {
 	return *this;
 }
 
-void Layer::draw_to(PixelWriter& writer) const {
-	window_->draw_to(writer, pos_);
+const Vector2D<int>& Layer::pos() const {
+	return pos_;
 }
 
-void LayerManager::set_writer(PixelWriter* writer) {
-	writer_ = writer;
+void Layer::draw_to(FrameBuffer& dst) const {
+	window_->draw_to(dst, pos_);
+}
+
+void LayerManager::set_screen(FrameBuffer* screen) {
+	screen_ = screen;
 }
 
 Layer& LayerManager::new_layer() {
@@ -59,7 +63,7 @@ void LayerManager::move_relative(unsigned int id, Vector2D<int> pos_diff) {
 
 void LayerManager::draw() const {
 	for (const auto& layer : layer_stack_) {
-		layer->draw_to(*writer_);
+		layer->draw_to(*screen_);
 	}
 }
 

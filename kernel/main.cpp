@@ -101,13 +101,9 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 		memory_manager->set_memory_range(FrameID(1), FrameID(available_end / bytes_per_frame));
 	}
 
-	char pixel_writer_buf[sizeof(RGBResv8BitPerColorPixelWriter)];
-	PixelWriter* pixel_writer = reinterpret_cast<PixelWriter*>(pixel_writer_buf);
-
-	if (frame_buffer_config.pixel_format == PixelFormat::RGBResv8BitPerColor) {
-		new (pixel_writer_buf) RGBResv8BitPerColorPixelWriter(frame_buffer_config);
-	} else if (frame_buffer_config.pixel_format == PixelFormat::BGRResv8BitPerColor) {
-		new (pixel_writer_buf) BGRResv8BitPerColorPixelWriter(frame_buffer_config);
+	if (auto err = initialize_heap(*memory_manager)) {
+		// log->error("Failed to allocate pages: %s\n", err.name());
+		halt();
 	}
 
 	const PixelColor desktop_fg_color{0xc8, 0xc8, 0xc6};
@@ -120,11 +116,6 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 	kernel_interface::logger::default_logger = &console_logger;
 	log = &logger_proxy;
 
-	if (auto err = initialize_heap(*memory_manager)) {
-		log->error("Failed to allocate pages: %s\n", err.name());
-		halt();
-	}
-
 	initialize_lapic_timer();
 
 	std::array<Message, 32> main_queue_buffer;
@@ -134,7 +125,7 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 	const int frame_width = frame_buffer_config.horizontal_resolution;
 	const int frame_height = frame_buffer_config.vertical_resolution;
 
-	auto bg_window = std::make_shared<Window>(frame_width, frame_height);
+	auto bg_window = std::make_shared<Window>(frame_width, frame_height, frame_buffer_config.pixel_format);
 	auto bg_window_writer = bg_window->writer();
 
 	draw_filled_rectangle(*bg_window_writer, {0, 0}, {frame_width, frame_height - 50}, desktop_bg_color);
@@ -142,15 +133,18 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 	draw_filled_rectangle(*bg_window_writer, {0, frame_height - 50}, {frame_width / 5, 50}, {80, 80, 80});
 	draw_rectangle(*bg_window_writer, {10, frame_height - 40}, {30, 30}, {160, 160, 160});
 
-	bg_window->draw_to(*pixel_writer, {0, 0});
 	global_console->set_pixel_writer(bg_window_writer);
 
+	FrameBuffer screen(frame_buffer_config);
 	layer_manager = new LayerManager();
-	layer_manager->set_writer(pixel_writer);
+	layer_manager->set_screen(&screen);
 
 	const auto bg_layer_id = layer_manager->new_layer().set_window(bg_window).move({0, 0}).id();
 
-	mouse_layer_id = layer_manager->new_layer().set_window(make_mouse_window()).move({200, 200}).id();
+	mouse_layer_id = layer_manager->new_layer()
+						 .set_window(make_mouse_window(frame_buffer_config.pixel_format))
+						 .move({200, 200})
+						 .id();
 
 	layer_manager->up_down(bg_layer_id, 0);
 	layer_manager->up_down(mouse_layer_id, 1);

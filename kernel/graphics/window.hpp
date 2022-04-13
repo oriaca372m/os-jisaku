@@ -3,6 +3,7 @@
 #include <optional>
 #include <vector>
 
+#include "frame_buffer.hpp"
 #include "graphics.hpp"
 
 class Window final {
@@ -19,13 +20,13 @@ public:
 		Window& window_;
 	};
 
-	Window(int width, int height);
+	Window(int width, int height, PixelFormat shadow_format);
 	~Window() = default;
 
 	Window(const Window&) = delete;
 	Window& operator=(const Window&) = delete;
 
-	void draw_to(PixelWriter& writer, Vector2D<int> position) const;
+	void draw_to(FrameBuffer& dst, Vector2D<int> position) const;
 
 	void set_transparent_color(std::optional<PixelColor> c);
 
@@ -44,4 +45,6 @@ private:
 	std::vector<std::vector<PixelColor>> data_{};
 	WindowWriter writer_{*this};
 	std::optional<PixelColor> transparent_color_ = std::nullopt;
+
+	FrameBuffer shadow_buffer_;
 };

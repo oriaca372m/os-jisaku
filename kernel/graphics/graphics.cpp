@@ -19,6 +19,15 @@ void BGRResv8BitPerColorPixelWriter::write(int x, int y, const PixelColor& c) {
 	p[2] = c.r;
 }
 
+std::unique_ptr<DevicePixelWriter> make_suitable_device_pixel_writer(const FrameBufferConfig& config) {
+	switch (config.pixel_format) {
+	case PixelFormat::RGBResv8BitPerColor:
+		return std::make_unique<RGBResv8BitPerColorPixelWriter>(config);
+	case PixelFormat::BGRResv8BitPerColor:
+		return std::make_unique<BGRResv8BitPerColorPixelWriter>(config);
+	}
+}
+
 void draw_filled_rectangle(
 	PixelWriter& writer,
 	const Vector2D<int>& pos,
