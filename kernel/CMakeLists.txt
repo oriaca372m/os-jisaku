@@ -18,6 +18,7 @@ add_executable(kernel.elf
 	paging.cpp
 	memory_manager.cpp
 	sbrk.cpp
+	timer.cpp
 	graphics/graphics.cpp
 	graphics/font.cpp
 	graphics/console.cpp

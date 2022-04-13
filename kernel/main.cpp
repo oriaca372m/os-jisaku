@@ -24,6 +24,7 @@
 #include "queue.hpp"
 #include "sbrk.hpp"
 #include "segment.hpp"
+#include "timer.hpp"
 #include "utils.hpp"
 
 namespace {
@@ -31,7 +32,11 @@ namespace {
 
 	void mouse_observer(int8_t dx, int8_t dy) {
 		layer_manager->move_relative(mouse_layer_id, {dx, dy});
+		start_lapic_timer();
 		layer_manager->draw();
+		const auto elapsed = lapic_timer_elapsed();
+		stop_lapic_timer();
+		printk("mouse_observer: elapsed = %u\n", elapsed);
 	}
 
 	struct Message {
@@ -119,6 +124,8 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 		log->error("Failed to allocate pages: %s\n", err.name());
 		halt();
 	}
+
+	initialize_lapic_timer();
 
 	std::array<Message, 32> main_queue_buffer;
 	ArrayQueue<Message> main_queue_instance(main_queue_buffer);
