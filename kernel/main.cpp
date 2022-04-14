@@ -36,7 +36,7 @@ namespace {
 		// layer_manager->draw();
 		const auto elapsed = lapic_timer_elapsed();
 		stop_lapic_timer();
-		printk("mouse_observer: elapsed = %u\n", elapsed);
+		printk("mouse_observer: elapsed = %u", elapsed);
 	}
 
 	struct Message {

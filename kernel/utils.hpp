@@ -23,7 +23,7 @@ int printk(const char* format, Args... args) {
 	const auto elapsed = lapic_timer_elapsed();
 	stop_lapic_timer();
 
-	std::snprintf(buf, sizeof(buf), "[%9d]", elapsed);
+	std::snprintf(buf, sizeof(buf), "[%9d]\n", elapsed);
 	global_console->put_string(buf);
 
 	return result;

@@ -58,6 +58,10 @@ Vector2D<int> FrameBuffer::size() const {
 	return {static_cast<int>(config_.horizontal_resolution), static_cast<int>(config_.vertical_resolution)};
 }
 
+void FrameBuffer::copy_self_y(int dst_y, int src_y, int length) {
+	std::memmove(frame_addr_at({0, dst_y}), frame_addr_at({0, src_y}), length * bytes_per_scan_line());
+}
+
 Error FrameBuffer::copy_from(const FrameBuffer& src, Vector2D<int> to_pos) {
 	return copy_from(
 		src,
@@ -81,14 +85,22 @@ Error FrameBuffer::copy_from(const FrameBuffer& src, Vector2D<int> to_pos, Vecto
 
 	const auto bpp = writer_traits_->bytes_per_pixel;
 
-	auto* dst_buf = config_.frame_buffer + bpp * (config_.pixels_per_scan_line * to_pos.y + to_pos.x);
-	const auto* src_buf = src.config_.frame_buffer + bpp * (src.config_.pixels_per_scan_line * src_pos.y + src_pos.x);
+	auto* dst_buf = frame_addr_at(to_pos);
+	const auto* src_buf = src.frame_addr_at(src_pos);
 
 	for (int y = 0; y < size.y; ++y) {
 		std::memcpy(dst_buf, src_buf, bpp * size.x);
-		dst_buf += bpp * config_.pixels_per_scan_line;
+		dst_buf += bytes_per_scan_line();
 		src_buf += bpp * src.config_.pixels_per_scan_line;
 	}
 
 	return Error::Code::Success;
+}
+
+std::size_t FrameBuffer::bytes_per_scan_line() const {
+	return writer_traits_->bytes_per_pixel * config_.pixels_per_scan_line;
+}
+
+std::uint8_t* FrameBuffer::frame_addr_at(Vector2D<int> pos) const {
+	return config_.frame_buffer + writer_traits_->bytes_per_pixel * (config_.pixels_per_scan_line * pos.y + pos.x);
 }

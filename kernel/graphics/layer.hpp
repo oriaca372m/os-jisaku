@@ -45,11 +45,14 @@ public:
 
 	void end();
 
+	void copy_y(int dst_y, int src_y, int src_end_y);
+
 	void draw_rectangle(const Rect<int>& rect, const PixelColor& c);
 	void draw_filled_rectangle(const Rect<int>& rect, const PixelColor& c);
 	PixelWriter& pixel_writer();
 
 	PixelWriter& raw_pixel_writer();
+	FrameBuffer& raw_buffer();
 	void raw_damage(const Rect<int>& rect);
 
 private:

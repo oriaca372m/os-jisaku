@@ -105,10 +105,10 @@ void FastConsole::new_line(Painter& painter) {
 
 	if (cursor_row_ < rows - 1) {
 		++cursor_row_;
-	} else {
-		cursor_row_ = 0;
+		return;
 	}
 
+	painter.copy_y(0, 16, rows * 16);
 	painter.draw_filled_rectangle({{0, cursor_row_ * 16}, {8 * columns, (cursor_row_ + 1) * 16}}, bg_color_);
 }
 
