@@ -39,6 +39,63 @@ namespace {
 			src_size,
 			src_pos);
 	}
+
+	void copy_transparent(
+		std::uint8_t* dst_buf,
+		const std::uint8_t* src_buf,
+		std::uint8_t* tc_buf,
+		const Vector2D<int>& size,
+		std::size_t bpp,
+		std::size_t dst_bpl,
+		std::size_t src_bpl) {
+		for (int y = 0; y < size.y; ++y) {
+			auto dst_buf_x = dst_buf;
+			auto src_buf_x = src_buf;
+
+			for (int x = 0; x < size.x; ++x) {
+				if (std::memcmp(src_buf_x, tc_buf, bpp) != 0) {
+					std::memcpy(dst_buf_x, src_buf_x, bpp);
+				}
+
+				dst_buf_x += bpp;
+				src_buf_x += bpp;
+			}
+
+			dst_buf += dst_bpl;
+			src_buf += src_bpl;
+		}
+	}
+
+	// 適当ベンチマークによると大体10倍速い
+	// 透明色見ないのと大体同じ速度出る
+	void copy_transparent_bpp_4(
+		std::uint8_t* dst_buf,
+		const std::uint8_t* src_buf,
+		std::uint8_t* tc_buf,
+		const Vector2D<int>& size,
+		std::size_t dst_bpl,
+		std::size_t src_bpl) {
+		const auto tc = *reinterpret_cast<std::uint32_t*>(tc_buf);
+
+		for (int y = 0; y < size.y; ++y) {
+			auto dst_buf_x = dst_buf;
+			auto src_buf_x = src_buf;
+
+			for (int x = 0; x < size.x; ++x) {
+				const auto src_px = reinterpret_cast<const std::uint32_t*>(src_buf_x);
+				if (*src_px != tc) {
+					const auto dst_px = reinterpret_cast<std::uint32_t*>(dst_buf_x);
+					*dst_px = *src_px;
+				}
+
+				dst_buf_x += 4;
+				src_buf_x += 4;
+			}
+
+			dst_buf += dst_bpl;
+			src_buf += src_bpl;
+		}
+	}
 }
 
 FrameBuffer::FrameBuffer(const FrameBufferConfig& config) : config_(config) {
@@ -62,16 +119,25 @@ void FrameBuffer::copy_self_y(int dst_y, int src_y, int length) {
 	std::memmove(frame_addr_at({0, dst_y}), frame_addr_at({0, src_y}), length * bytes_per_scan_line());
 }
 
-Error FrameBuffer::copy_from(const FrameBuffer& src, Vector2D<int> to_pos) {
+Error FrameBuffer::copy_from(
+	const FrameBuffer& src,
+	Vector2D<int> to_pos,
+	std::optional<PixelColor> transparent_color) {
 	return copy_from(
 		src,
 		to_pos,
 		{0, 0},
 		{std::min(static_cast<int>(config_.horizontal_resolution), static_cast<int>(src.config_.horizontal_resolution)),
-		 std::min(static_cast<int>(config_.vertical_resolution), static_cast<int>(src.config_.vertical_resolution))});
+		 std::min(static_cast<int>(config_.vertical_resolution), static_cast<int>(src.config_.vertical_resolution))},
+		transparent_color);
 }
 
-Error FrameBuffer::copy_from(const FrameBuffer& src, Vector2D<int> to_pos, Vector2D<int> src_pos, Vector2D<int> size) {
+Error FrameBuffer::copy_from(
+	const FrameBuffer& src,
+	Vector2D<int> to_pos,
+	Vector2D<int> src_pos,
+	Vector2D<int> size,
+	std::optional<PixelColor> transparent_color) {
 	if (src.config_.pixel_format != config_.pixel_format) {
 		return Error::Code::UnknownPixelFormat;
 	}
@@ -88,10 +154,25 @@ Error FrameBuffer::copy_from(const FrameBuffer& src, Vector2D<int> to_pos, Vecto
 	auto* dst_buf = frame_addr_at(to_pos);
 	const auto* src_buf = src.frame_addr_at(src_pos);
 
-	for (int y = 0; y < size.y; ++y) {
-		std::memcpy(dst_buf, src_buf, bpp * size.x);
-		dst_buf += bytes_per_scan_line();
-		src_buf += bpp * src.config_.pixels_per_scan_line;
+	const auto dst_bpl = bytes_per_scan_line();
+	const auto src_bpl = src.bytes_per_scan_line();
+
+	if (transparent_color) {
+		// 流石に1pxに32byte以上使うピクセルフォーマットは無いと思う
+		std::uint8_t tc_buf[32];
+		writer_->write_to_buf(tc_buf, *transparent_color);
+
+		if (bpp == 4) {
+			copy_transparent_bpp_4(dst_buf, src_buf, tc_buf, size, dst_bpl, src_bpl);
+		} else {
+			copy_transparent(dst_buf, src_buf, tc_buf, size, bpp, dst_bpl, src_bpl);
+		}
+	} else {
+		for (int y = 0; y < size.y; ++y) {
+			std::memcpy(dst_buf, src_buf, bpp * size.x);
+			dst_buf += dst_bpl;
+			src_buf += src_bpl;
+		}
 	}
 
 	return Error::Code::Success;

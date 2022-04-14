@@ -9,9 +9,14 @@ class DevicePixelWriter : public PixelWriter {
 public:
 	DevicePixelWriter(const FrameBufferConfig& config) : config_{config} {};
 
+	void write(int x, int y, const PixelColor& c) override final {
+		write_to_buf(get_pixel_buf_at(x, y), c);
+	};
+
+	virtual void write_to_buf(std::uint8_t* buf, const PixelColor& c) = 0;
 	virtual void write_pixel_buf_at(int x, int y, const std::uint8_t* buf) = 0;
 
-	virtual const std::uint8_t* get_pixel_buf_at(int x, int y) const = 0;
+	virtual std::uint8_t* get_pixel_buf_at(int x, int y) const = 0;
 	virtual PixelColor get_pixel_at(int x, int y) const = 0;
 
 protected:
@@ -27,7 +32,7 @@ public:
 		std::memcpy(get_pixel_buf_at(x, y), buf, bytes_per_pixel);
 	}
 
-	const std::uint8_t* get_pixel_buf_at(int x, int y) const override final {
+	std::uint8_t* get_pixel_buf_at(int x, int y) const override final {
 		const int pixel_position = config_.pixels_per_scan_line * y + x;
 		return config_.frame_buffer + bytes_per_pixel * pixel_position;
 	}
@@ -68,7 +73,7 @@ class RGBResv8BitPerColorPixelWriter final : public DevicePixelWriterBase<4> {
 public:
 	using DevicePixelWriterBase::DevicePixelWriterBase;
 
-	void write(int x, int y, const PixelColor& c) override;
+	void write_to_buf(std::uint8_t* buf, const PixelColor& c) override;
 	PixelColor get_pixel_at(int x, int y) const override;
 };
 
@@ -80,7 +85,7 @@ class BGRResv8BitPerColorPixelWriter final : public DevicePixelWriterBase<4> {
 public:
 	using DevicePixelWriterBase::DevicePixelWriterBase;
 
-	void write(int x, int y, const PixelColor& c) override;
+	void write_to_buf(std::uint8_t* buf, const PixelColor& c) override;
 	PixelColor get_pixel_at(int x, int y) const override;
 };
 

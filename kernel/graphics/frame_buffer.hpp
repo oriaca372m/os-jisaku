@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include "device_pixel_writer.hpp"
@@ -23,8 +24,13 @@ public:
 
 	void copy_self_y(int dst_y, int src_y, int src_end_y);
 
-	Error copy_from(const FrameBuffer& src, Vector2D<int> to_pos);
-	Error copy_from(const FrameBuffer& src, Vector2D<int> to_pos, Vector2D<int> src_pos, Vector2D<int> size);
+	Error copy_from(const FrameBuffer& src, Vector2D<int> to_pos, std::optional<PixelColor> transparent_color);
+	Error copy_from(
+		const FrameBuffer& src,
+		Vector2D<int> to_pos,
+		Vector2D<int> src_pos,
+		Vector2D<int> size,
+		std::optional<PixelColor> transparent_color);
 
 private:
 	FrameBufferConfig config_;

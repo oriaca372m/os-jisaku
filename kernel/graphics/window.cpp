@@ -11,7 +11,7 @@ Window::Window(int width, int height, PixelFormat shadow_format) :
 
 void Window::draw_to(FrameBuffer& dst, Vector2D<int> position) const {
 	if (!transparent_color_) {
-		dst.copy_from(shadow_buffer_, position);
+		dst.copy_from(shadow_buffer_, position, std::nullopt);
 		return;
 	}
 

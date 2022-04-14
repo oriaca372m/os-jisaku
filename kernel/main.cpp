@@ -253,6 +253,21 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 	log->info(u8"xHC starting\n");
 	xhc.Run();
 
+	// FrameBufferのベンチマーク
+	{
+		auto& mouse_buf = mouse_layer->start_paint().raw_buffer();
+		const auto tc = PixelColor{0xFF, 0x00, 0x00};
+		FrameBuffer fb(FrameBufferConfig(320, 320, frame_buffer_config.pixel_format));
+
+		start_lapic_timer();
+		for (int i = 0; i < 100000; ++i) {
+			fb.copy_from(mouse_buf, {0, 0}, tc);
+		}
+		const auto elapsed = lapic_timer_elapsed();
+		stop_lapic_timer();
+		printk("fb.copy_from: elapsed = %u\n", elapsed / 10000);
+	}
+
 	// 割り込みの開始
 	__asm("sti");
 

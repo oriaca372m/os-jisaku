@@ -1,7 +1,6 @@
 #include "device_pixel_writer.hpp"
 
-void RGBResv8BitPerColorPixelWriter::write(int x, int y, const PixelColor& c) {
-	auto p = get_pixel_buf_at(x, y);
+void RGBResv8BitPerColorPixelWriter::write_to_buf(std::uint8_t* p, const PixelColor& c) {
 	p[0] = c.r;
 	p[1] = c.g;
 	p[2] = c.b;
@@ -12,8 +11,7 @@ PixelColor RGBResv8BitPerColorPixelWriter::get_pixel_at(int x, int y) const {
 	return {p[0], p[1], p[2]};
 }
 
-void BGRResv8BitPerColorPixelWriter::write(int x, int y, const PixelColor& c) {
-	auto p = get_pixel_buf_at(x, y);
+void BGRResv8BitPerColorPixelWriter::write_to_buf(std::uint8_t* p, const PixelColor& c) {
 	p[0] = c.b;
 	p[1] = c.g;
 	p[2] = c.r;

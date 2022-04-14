@@ -90,7 +90,7 @@ Vector2D<int> BufferLayer::size() const {
 }
 
 void BufferLayer::draw_to(FrameBuffer& dst) const {
-	dst.copy_from(*buffer_, pos_);
+	dst.copy_from(*buffer_, pos_, transparent_color_);
 }
 
 void BufferLayer::draw_to(FrameBuffer& dst, Rect<int> damage) const {
@@ -100,7 +100,7 @@ void BufferLayer::draw_to(FrameBuffer& dst, Rect<int> damage) const {
 	}
 
 	const auto cross = damage.cross(layer_rect);
-	dst.copy_from(*buffer_, cross.top_left(), cross.top_left() - pos_, cross.size());
+	dst.copy_from(*buffer_, cross.top_left(), cross.top_left() - pos_, cross.size(), transparent_color_);
 }
 
 Painter BufferLayer::start_paint() {
