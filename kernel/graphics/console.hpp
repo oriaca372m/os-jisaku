@@ -48,7 +48,6 @@ private:
 	BufferLayer& layer_;
 	const PixelColor fg_color_;
 	const PixelColor bg_color_;
-	char buffer_[rows][columns];
 	int cursor_row_;
 	int cursor_column_;
 };
