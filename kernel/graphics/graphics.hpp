@@ -36,6 +36,16 @@ struct Vector2D {
 	Vector2D<T> operator+(const Vector2D<U>& rhs) const {
 		return {x + rhs.x, y + rhs.y};
 	}
+
+	template <typename U>
+	Vector2D<T> operator-(const Vector2D<U>& rhs) const {
+		return {x - rhs.x, y - rhs.y};
+	}
+
+	template <typename U>
+	explicit operator Vector2D<U>() const {
+		return {static_cast<U>(x), static_cast<U>(y)};
+	}
 };
 
 template <typename T>
@@ -81,6 +91,16 @@ struct Rect {
 		return {
 			{std::min(left(), other.left()), std::min(top(), other.top())},
 			{std::max(right(), other.right()), std::max(bottom(), other.bottom())}};
+	}
+
+	constexpr Rect<T> cross(Rect<T> other) const {
+		return {
+			{std::max(left(), other.left()), std::max(top(), other.top())},
+			{std::min(right(), other.right()), std::min(bottom(), other.bottom())}};
+	}
+
+	constexpr bool is_crossing(Rect<T> other) const {
+		return left() < other.right() && top() < other.bottom() && other.left() < right() && other.top() < bottom();
 	}
 };
 

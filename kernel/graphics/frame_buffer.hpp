@@ -22,6 +22,11 @@ public:
 	}
 
 	Error copy_from(const FrameBuffer& src, Vector2D<int> to_pos);
+	Error copy_from(
+		const FrameBuffer& src,
+		Vector2D<std::uint32_t> to_pos,
+		Vector2D<std::uint32_t> src_pos,
+		Vector2D<std::uint32_t> src_size);
 
 private:
 	FrameBufferConfig config_;

@@ -33,7 +33,7 @@ namespace {
 	void mouse_observer(int8_t dx, int8_t dy) {
 		layer_manager->move_relative(mouse_layer_id, {dx, dy});
 		start_lapic_timer();
-		layer_manager->draw();
+		// layer_manager->draw();
 		const auto elapsed = lapic_timer_elapsed();
 		stop_lapic_timer();
 		printk("mouse_observer: elapsed = %u\n", elapsed);
