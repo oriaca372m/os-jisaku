@@ -48,9 +48,7 @@ void Layer::draw_to(FrameBuffer& dst, Rect<int> damage) const {
 	}
 
 	const auto cross = damage.cross(layer_rect);
-	const auto src_pos = cross.top_left - pos_;
-
-	dst.copy_from(*rendered_, cross.top_left, src_pos, {cross.width(), cross.height()});
+	dst.copy_from(*rendered_, cross.top_left(), cross.top_left() - pos_, cross.size());
 }
 
 void Layer::damage(const std::vector<Rect<int>>& rects) {
@@ -70,11 +68,11 @@ void Painter::end() {
 }
 
 void Painter::draw_rectangle(const Rect<int>& rect, const PixelColor& c) {
-	::draw_rectangle(raw_pixel_writer(), rect.top_left, rect.size(), c);
+	::draw_rectangle(raw_pixel_writer(), rect.top_left(), rect.size(), c);
 	raw_damage(rect);
 }
 void Painter::draw_filled_rectangle(const Rect<int>& rect, const PixelColor& c) {
-	::draw_filled_rectangle(raw_pixel_writer(), rect.top_left, rect.size(), c);
+	::draw_filled_rectangle(raw_pixel_writer(), rect.top_left(), rect.size(), c);
 	raw_damage(rect);
 }
 
