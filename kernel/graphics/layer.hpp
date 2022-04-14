@@ -1,52 +1,74 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 
 #include "frame_buffer.hpp"
-#include "window.hpp"
+#include "layer_manager.hpp"
+
+class LayerManager;
 
 class Layer {
 public:
-	Layer(unsigned int id = 0);
+	Layer(LayerManager& manager, unsigned int id = 0);
 
 	unsigned int id() const;
+	Vector2D<int> pos() const;
+	Vector2D<int> size() const;
 
-	Layer& set_window(const std::shared_ptr<Window>& window);
-	std::shared_ptr<Window> get_window() const;
+	void set_transparent_color(std::optional<PixelColor> c);
 
 	Layer& move(Vector2D<int> pos);
 	Layer& move_relative(Vector2D<int> pos_diff);
-	const Vector2D<int>& pos() const;
 
 	void draw_to(FrameBuffer& dst) const;
+	void draw_to(FrameBuffer& dst, Rect<int> damage) const;
+
+	// このLayerのコンテンツの範囲rectsが更新された時呼ばれる
+	// rectsはこのLayerの座標空間
+	void damage(const std::vector<Rect<int>>& rects);
+
+protected:
+	LayerManager& manager_;
+	std::unique_ptr<FrameBuffer> rendered_;
+	std::optional<PixelColor> transparent_color_ = std::nullopt;
+
+	Rect<int> manager_area() const;
 
 private:
-	unsigned int id_;
+	const unsigned int id_;
 	Vector2D<int> pos_;
-	std::shared_ptr<Window> window_;
 };
 
-class LayerManager {
+class Painter final {
 public:
-	void set_screen(FrameBuffer* screen);
+	Painter(FrameBuffer& buffer, Layer& layer);
+	~Painter();
 
-	Layer& new_layer();
+	void end();
 
-	void draw() const;
+	void draw_rectangle(const Rect<int>& rect, const PixelColor& c);
+	void draw_filled_rectangle(const Rect<int>& rect, const PixelColor& c);
+	PixelWriter& pixel_writer();
 
-	void move(unsigned int id, Vector2D<int> new_position);
-	void move_relative(unsigned int id, Vector2D<int> pos_diff);
-
-	void up_down(unsigned int id, int new_height);
-	void hide(unsigned int id);
+	PixelWriter& raw_pixel_writer();
+	void raw_damage(const Rect<int>& rect);
 
 private:
-	FrameBuffer* screen_ = nullptr;
-	std::vector<std::unique_ptr<Layer>> layers_{};
-	std::vector<Layer*> layer_stack_{};
-	unsigned int latest_id_ = 0;
+	FrameBuffer& buffer_;
+	Layer& layer_;
 
-	Layer* find_layer(unsigned int id);
+	std::vector<Rect<int>> damages_;
 };
 
-inline LayerManager* layer_manager = nullptr;
+class BufferLayer final : public Layer {
+public:
+	BufferLayer(LayerManager& manager, unsigned int id, const FrameBufferConfig& config);
+
+	Painter start_paint();
+};
+
+// class LayerManagerLayer final : public Layer {
+// 	LayerManagerLayer(LayerManager* parent);
+// 	LayerManager canvas;
+// };

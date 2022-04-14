@@ -133,29 +133,32 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 	ArrayQueue<Message> main_queue_instance(main_queue_buffer);
 	main_queue = &main_queue_instance;
 
-	auto bg_window = std::make_shared<Window>(frame_width, frame_height, frame_buffer_config.pixel_format);
-	auto bg_window_writer = bg_window->writer();
-
-	draw_filled_rectangle(*bg_window_writer, {0, 0}, {frame_width, frame_height - 50}, desktop_bg_color);
-	draw_filled_rectangle(*bg_window_writer, {0, frame_height - 50}, {frame_width, 50}, {1, 8, 17});
-	draw_filled_rectangle(*bg_window_writer, {0, frame_height - 50}, {frame_width / 5, 50}, {80, 80, 80});
-	draw_rectangle(*bg_window_writer, {10, frame_height - 40}, {30, 30}, {160, 160, 160});
-
-	global_console->set_pixel_writer(bg_window_writer);
-
 	FrameBuffer screen(frame_buffer_config);
-	layer_manager = new LayerManager();
-	layer_manager->set_screen(&screen);
+	layer_manager = new LayerManager(frame_buffer_config.pixel_format);
+	layer_manager->set_buffer(&screen);
 
-	const auto bg_layer_id = layer_manager->new_layer().set_window(bg_window).move({0, 0}).id();
+	auto bg_layer = layer_manager->new_buffer_layer({frame_width, frame_width});
+	bg_layer->move({0, 0});
 
-	mouse_layer_id = layer_manager->new_layer()
-						 .set_window(make_mouse_window(frame_buffer_config.pixel_format))
-						 .move({200, 200})
-						 .id();
+	{
+		auto painter = bg_layer->start_paint();
 
-	layer_manager->up_down(bg_layer_id, 0);
-	layer_manager->up_down(mouse_layer_id, 1);
+		painter.draw_filled_rectangle({{0, 0}, {frame_width, frame_height - 50}}, desktop_bg_color);
+		painter.draw_filled_rectangle({{0, frame_height - 50}, {frame_width, frame_height}}, {1, 8, 17});
+		painter.draw_filled_rectangle({{0, frame_height - 50}, {frame_width / 5, frame_height}}, {80, 80, 80});
+		painter.draw_rectangle({{10, frame_height - 40}, {40, frame_height - 10}}, {160, 160, 160});
+
+		painter.draw_filled_rectangle({{500, 500}, {600, 600}}, {255, 0, 0});
+
+		global_console->set_pixel_writer(&painter.raw_pixel_writer());
+	}
+
+	auto mouse_layer = make_mouse_layer(*layer_manager);
+	mouse_layer_id = mouse_layer->id();
+	mouse_layer->move({200, 200});
+
+	layer_manager->up_down(bg_layer->id(), 0);
+	layer_manager->up_down(mouse_layer->id(), 1);
 
 	layer_manager->draw();
 

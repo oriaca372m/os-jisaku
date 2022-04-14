@@ -15,6 +15,10 @@ FrameBuffer::FrameBuffer(const FrameBufferConfig& config) : config_(config) {
 	writer_ = writer_traits_->construct(config_);
 }
 
+Vector2D<int> FrameBuffer::size() const {
+	return {static_cast<int>(config_.horizontal_resolution), static_cast<int>(config_.vertical_resolution)};
+}
+
 Error FrameBuffer::copy_from(const FrameBuffer& src, Vector2D<int> to_pos) {
 	if (src.config_.pixel_format != config_.pixel_format) {
 		return Error::Code::UnknownPixelFormat;

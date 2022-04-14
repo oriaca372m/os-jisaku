@@ -11,6 +11,8 @@ class FrameBuffer final {
 public:
 	FrameBuffer(const FrameBufferConfig& config);
 
+	Vector2D<int> size() const;
+
 	DevicePixelWriter& writer() {
 		return *writer_;
 	}
