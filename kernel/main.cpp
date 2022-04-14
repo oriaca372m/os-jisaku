@@ -79,7 +79,7 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 
 	console_instance.set_pixel_writer(fb_pixel_writer);
 
-	auto console_logger = logger::ConsoleLogger(console_instance, logger::LogLevel::Info);
+	auto console_logger = logger::ConsoleLogger(&console_instance, logger::LogLevel::Info);
 	auto logger_proxy = logger::LoggerProxy(console_logger);
 	kernel_interface::logger::default_logger = &console_logger;
 	log = &logger_proxy;
@@ -150,7 +150,7 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 
 		painter.draw_filled_rectangle({{500, 500}, {600, 600}}, {255, 0, 0});
 
-		global_console->set_pixel_writer(&painter.raw_pixel_writer());
+		console_instance.set_pixel_writer(&painter.raw_pixel_writer());
 	}
 
 	auto mouse_layer = make_mouse_layer(*layer_manager);

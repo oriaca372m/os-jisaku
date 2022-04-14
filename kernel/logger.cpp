@@ -1,11 +1,19 @@
 #include "logger.hpp"
 
 namespace logger {
-	ConsoleLogger::ConsoleLogger(Console& console, LogLevel log_level) : console_{console}, log_level_{log_level} {}
+	ConsoleLogger::ConsoleLogger(IConsole* console, LogLevel log_level) : console_{console}, log_level_{log_level} {}
+
+	void ConsoleLogger::set_console(IConsole* console) {
+		console_ = console;
+	}
 
 	void ConsoleLogger::log(LogLevel level, const char* msg) {
+		if (console_ == nullptr) {
+			return;
+		}
+
 		if (will_be_logged(level)) {
-			console_.put_string(msg);
+			console_->put_string(msg);
 		}
 	}
 

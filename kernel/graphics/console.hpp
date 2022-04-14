@@ -2,7 +2,12 @@
 
 #include "graphics.hpp"
 
-class Console final {
+class IConsole {
+public:
+	virtual void put_string(const char* s) = 0;
+};
+
+class Console final : public IConsole {
 public:
 	static const int rows = 25;
 	static const int columns = 80;
@@ -25,4 +30,4 @@ private:
 	int cursor_column_;
 };
 
-inline Console* global_console;
+inline IConsole* global_console;

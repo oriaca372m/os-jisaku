@@ -11,13 +11,15 @@ namespace logger {
 
 	class ConsoleLogger final : public ILogger {
 	public:
-		ConsoleLogger(Console& console, LogLevel log_level = LogLevel::Warn);
+		ConsoleLogger(IConsole* console = nullptr, LogLevel log_level = LogLevel::Warn);
+
+		void set_console(IConsole* console);
 
 		void log(LogLevel level, const char* msg) override;
 		bool will_be_logged(LogLevel level) override;
 
 	private:
-		Console& console_;
+		IConsole* console_;
 		LogLevel log_level_;
 	};
 
