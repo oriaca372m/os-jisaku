@@ -3,6 +3,8 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "primitives.hpp"
+
 enum class PixelFormat {
 	RGBResv8BitPerColor,
 	BGRResv8BitPerColor,
@@ -21,4 +23,8 @@ struct FrameBufferConfig {
 		horizontal_resolution(width),
 		vertical_resolution(height),
 		pixel_format(pixel_format) {}
+
+	Vector2D<std::uint32_t> size() const {
+		return {horizontal_resolution, vertical_resolution};
+	}
 };

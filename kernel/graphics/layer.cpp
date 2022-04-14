@@ -47,14 +47,10 @@ void Layer::draw_to(FrameBuffer& dst, Rect<int> damage) const {
 		return;
 	}
 
-	const auto cross = damage.cross(layer_rect).cross({{0, 0}, dst.size()});
+	const auto cross = damage.cross(layer_rect);
 	const auto src_pos = cross.top_left - pos_;
 
-	dst.copy_from(
-		*rendered_,
-		static_cast<Vector2D<std::uint32_t>>(cross.top_left),
-		static_cast<Vector2D<std::uint32_t>>(src_pos),
-		{static_cast<std::uint32_t>(cross.width()), static_cast<std::uint32_t>(cross.height())});
+	dst.copy_from(*rendered_, cross.top_left, src_pos, {cross.width(), cross.height()});
 }
 
 void Layer::damage(const std::vector<Rect<int>>& rects) {

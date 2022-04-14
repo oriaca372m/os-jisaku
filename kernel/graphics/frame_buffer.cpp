@@ -2,6 +2,45 @@
 
 #include <cstring>
 
+namespace {
+	void adjust_coords(
+		const Vector2D<std::uint32_t>& to_size,
+		const Vector2D<std::uint32_t>& src_size,
+		Vector2D<int>& to_pos,
+		Vector2D<int>& src_pos,
+		Vector2D<int>& size) {
+		// dの符号が負の時の話なのでv+dをすると小さくなることに注意
+		const auto decrease_d = [](int v, int d) { return d < 0 ? v + d : v; };
+		const auto increase_d = [](int v, int d) { return d < 0 ? v - d : v; };
+
+		const auto prevent_minus = [](int v) { return std::max(v, 0); };
+
+		// src_posが負の時の座標調整
+		// src_posが負ならその分sizeを縮め、to_posを増やし、src_posを0にする
+		size = size.map(decrease_d, src_pos);
+		to_pos = to_pos.map(increase_d, src_pos);
+		src_pos = src_pos.map(prevent_minus);
+
+		// to_posが負の時の座標調整
+		// to_posが負ならその分sizeを縮め、to_posを増やし、to_posを0にする
+		size = size.map(decrease_d, to_pos);
+		src_pos = src_pos.map(increase_d, to_pos);
+		to_pos = to_pos.map(prevent_minus);
+
+		// sizeがto/srcの大きさを超えないように
+		size = size.map(
+			[](int size, std::uint32_t to_size, int to_pos, std::uint32_t src_res, int src_size) {
+				const auto max_size =
+					std::min(static_cast<int>(to_size) - to_pos, static_cast<int>(src_res) - src_size);
+				return std::min(size, max_size);
+			},
+			to_size,
+			to_pos,
+			src_size,
+			src_pos);
+	}
+}
+
 FrameBuffer::FrameBuffer(const FrameBufferConfig& config) : config_(config) {
 	writer_traits_ = &get_suitable_device_pixel_writer_traits(config_.pixel_format);
 	const auto bpp = writer_traits_->bytes_per_pixel;
@@ -22,19 +61,22 @@ Vector2D<int> FrameBuffer::size() const {
 Error FrameBuffer::copy_from(const FrameBuffer& src, Vector2D<int> to_pos) {
 	return copy_from(
 		src,
-		static_cast<Vector2D<std::uint32_t>>(to_pos),
+		to_pos,
 		{0, 0},
-		{std::min(config_.horizontal_resolution, src.config_.horizontal_resolution),
-		 std::min(config_.vertical_resolution, src.config_.vertical_resolution)});
+		{std::min(static_cast<int>(config_.horizontal_resolution), static_cast<int>(src.config_.horizontal_resolution)),
+		 std::min(static_cast<int>(config_.vertical_resolution), static_cast<int>(src.config_.vertical_resolution))});
 }
 
-Error FrameBuffer::copy_from(
-	const FrameBuffer& src,
-	Vector2D<std::uint32_t> to_pos,
-	Vector2D<std::uint32_t> src_pos,
-	Vector2D<std::uint32_t> src_size) {
+Error FrameBuffer::copy_from(const FrameBuffer& src, Vector2D<int> to_pos, Vector2D<int> src_pos, Vector2D<int> size) {
 	if (src.config_.pixel_format != config_.pixel_format) {
 		return Error::Code::UnknownPixelFormat;
+	}
+
+	adjust_coords(config_.size(), src.config_.size(), to_pos, src_pos, size);
+
+	// 描画するものがない
+	if (size.x <= 0 || size.y <= 0) {
+		return Error::Code::Success;
 	}
 
 	const auto bpp = writer_traits_->bytes_per_pixel;
@@ -42,8 +84,8 @@ Error FrameBuffer::copy_from(
 	auto* dst_buf = config_.frame_buffer + bpp * (config_.pixels_per_scan_line * to_pos.y + to_pos.x);
 	const auto* src_buf = src.config_.frame_buffer + bpp * (src.config_.pixels_per_scan_line * src_pos.y + src_pos.x);
 
-	for (int y = 0; y < src_size.y; ++y) {
-		std::memcpy(dst_buf, src_buf, bpp * (src_size.x));
+	for (int y = 0; y < size.y; ++y) {
+		std::memcpy(dst_buf, src_buf, bpp * size.x);
 		dst_buf += bpp * config_.pixels_per_scan_line;
 		src_buf += bpp * src.config_.pixels_per_scan_line;
 	}
