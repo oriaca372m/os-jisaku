@@ -153,12 +153,20 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 		console_instance.set_pixel_writer(&painter.raw_pixel_writer());
 	}
 
+	auto console_layer = layer_manager->new_buffer_layer({640, 400});
+	console_layer->move({200, 150});
+
+	auto fast_console = FastConsole(desktop_fg_color, {0, 0, 123}, *console_layer);
+	global_console = &fast_console;
+	console_logger.set_console(global_console);
+
 	auto mouse_layer = make_mouse_layer(*layer_manager);
 	mouse_layer_id = mouse_layer->id();
 	mouse_layer->move({200, 200});
 
 	layer_manager->up_down(bg_layer->id(), 0);
-	layer_manager->up_down(mouse_layer->id(), 1);
+	layer_manager->up_down(console_layer->id(), 1);
+	layer_manager->up_down(mouse_layer->id(), 2);
 
 	layer_manager->draw();
 
