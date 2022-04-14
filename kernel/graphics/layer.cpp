@@ -13,10 +13,6 @@ Vector2D<int> Layer::pos() const {
 	return pos_;
 }
 
-Vector2D<int> Layer::size() const {
-	return rendered_->size();
-}
-
 void Layer::set_transparent_color(std::optional<PixelColor> c) {
 	transparent_color_ = c;
 }
@@ -35,20 +31,6 @@ Layer& Layer::move(Vector2D<int> pos) {
 
 Layer& Layer::move_relative(Vector2D<int> pos_diff) {
 	return move(pos_ + pos_diff);
-}
-
-void Layer::draw_to(FrameBuffer& dst) const {
-	dst.copy_from(*rendered_, pos_);
-}
-
-void Layer::draw_to(FrameBuffer& dst, Rect<int> damage) const {
-	const auto layer_rect = manager_area();
-	if (!damage.is_crossing(layer_rect)) {
-		return;
-	}
-
-	const auto cross = damage.cross(layer_rect);
-	dst.copy_from(*rendered_, cross.top_left(), cross.top_left() - pos_, cross.size());
 }
 
 void Layer::damage(const std::vector<Rect<int>>& rects) {
@@ -100,9 +82,27 @@ void Painter::raw_damage(const Rect<int>& rect) {
 }
 
 BufferLayer::BufferLayer(LayerManager& manager, unsigned int id, const FrameBufferConfig& config) : Layer(manager, id) {
-	rendered_ = std::make_unique<FrameBuffer>(config);
+	buffer_ = std::make_unique<FrameBuffer>(config);
+}
+
+Vector2D<int> BufferLayer::size() const {
+	return buffer_->size();
+}
+
+void BufferLayer::draw_to(FrameBuffer& dst) const {
+	dst.copy_from(*buffer_, pos_);
+}
+
+void BufferLayer::draw_to(FrameBuffer& dst, Rect<int> damage) const {
+	const auto layer_rect = manager_area();
+	if (!damage.is_crossing(layer_rect)) {
+		return;
+	}
+
+	const auto cross = damage.cross(layer_rect);
+	dst.copy_from(*buffer_, cross.top_left(), cross.top_left() - pos_, cross.size());
 }
 
 Painter BufferLayer::start_paint() {
-	return Painter(*rendered_, *this);
+	return Painter(*buffer_, *this);
 }
