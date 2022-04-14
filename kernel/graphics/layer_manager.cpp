@@ -47,14 +47,17 @@ void LayerManager::draw() const {
 }
 
 void LayerManager::damage(const std::vector<Rect<int>>& rects) {
-	if (buffer_ == nullptr) {
+	if (buffer_ == nullptr || rects.empty()) {
 		return;
 	}
 
+	auto merged_rect = rects[0];
+	for (std::size_t i = 1; i < rects.size(); ++i) {
+		merged_rect = merged_rect.merge(rects[i]);
+	}
+
 	for (const auto& layer : layer_stack_) {
-		for (const auto& rect : rects) {
-			layer->draw_to(*buffer_, rect);
-		}
+		layer->draw_to(*buffer_, merged_rect);
 	}
 
 	if (parent_ != nullptr) {
