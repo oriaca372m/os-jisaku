@@ -6,8 +6,6 @@
 #include "frame_buffer.hpp"
 #include "layer_manager.hpp"
 
-class LayerManager;
-
 class Layer {
 public:
 	Layer(LayerManager& manager, unsigned int id = 0);

@@ -2,7 +2,7 @@
 
 #include "console.hpp"
 #include "font.hpp"
-#include "graphics/layer.hpp"
+#include "layer.hpp"
 
 Console::Console(const PixelColor& fg_color, const PixelColor& bg_color) :
 	fg_color_(fg_color), bg_color_(bg_color), buffer_{}, cursor_row_(0), cursor_column_(0) {}

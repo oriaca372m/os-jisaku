@@ -1,8 +1,9 @@
 #pragma once
 
-#include "graphics.hpp"
 #include <algorithm>
 #include <memory>
+
+#include "graphics.hpp"
 
 class DevicePixelWriter : public PixelWriter {
 public:
