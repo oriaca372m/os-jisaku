@@ -80,8 +80,6 @@ FastConsole::FastConsole(const PixelColor& fg_color, const PixelColor& bg_color,
 
 void FastConsole::put_string(const char* s) {
 	auto painter = layer_.start_paint();
-	auto& writer = painter.raw_pixel_writer();
-	painter.raw_damage({{0, cursor_row_ * 16}, {8 * columns, (cursor_row_ + 1) * 16}});
 
 	for (; *s != u8'\0'; ++s) {
 		if (*s == u8'\n') {
@@ -91,7 +89,7 @@ void FastConsole::put_string(const char* s) {
 
 	retry:
 		if (cursor_column_ < columns) {
-			draw_char_at(writer, cursor_column_, cursor_row_, *s);
+			draw_char_at(painter, cursor_column_, cursor_row_, *s);
 			++cursor_column_;
 		} else {
 			new_line(painter);
@@ -112,10 +110,9 @@ void FastConsole::new_line(Painter& painter) {
 	painter.draw_filled_rectangle({{0, cursor_row_ * 16}, {8 * columns, (cursor_row_ + 1) * 16}}, bg_color_);
 }
 
-void FastConsole::draw_char_at(PixelWriter& writer, int x, int y, char c) {
+void FastConsole::draw_char_at(Painter& painter, int x, int y, char c) {
 	if (c == u8'\0') {
 		return;
 	}
-
-	write_ascii(writer, x * 8, y * 16, c, fg_color_);
+	painter.draw_ascii({x * 8, y * 16}, c, fg_color_);
 }

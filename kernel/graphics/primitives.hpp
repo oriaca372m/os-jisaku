@@ -36,6 +36,10 @@ struct Rect final {
 	constexpr Rect(const Vector2D<T>& top_left, const Vector2D<T>& bottom_right) :
 		left(top_left.x), top(top_left.y), right(bottom_right.x), bottom(bottom_right.y) {}
 
+	constexpr static Rect<T> with_size(const Vector2D<T>& top_left, const Vector2D<T>& size) {
+		return {top_left, top_left + size};
+	}
+
 	T left;
 	T top;
 	T right;

@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <memory>
 
+#include "font.hpp"
+
 Layer::Layer(LayerManager& manager, unsigned int id) : manager_(manager), id_{id} {}
 
 unsigned int Layer::id() const {
@@ -63,9 +65,15 @@ void Painter::draw_rectangle(const Rect<int>& rect, const PixelColor& c) {
 	::draw_rectangle(raw_pixel_writer(), rect.top_left(), rect.size(), c);
 	raw_damage(rect);
 }
+
 void Painter::draw_filled_rectangle(const Rect<int>& rect, const PixelColor& c) {
 	::draw_filled_rectangle(raw_pixel_writer(), rect.top_left(), rect.size(), c);
 	raw_damage(rect);
+}
+
+void Painter::draw_ascii(const Vector2D<int>& pos, char ch, const PixelColor& c) {
+	write_ascii(raw_pixel_writer(), pos.x, pos.y, ch, c);
+	raw_damage(Rect<int>::with_size(pos, {8, 16}));
 }
 
 PixelWriter& Painter::pixel_writer() {

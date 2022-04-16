@@ -48,6 +48,7 @@ public:
 
 	void draw_rectangle(const Rect<int>& rect, const PixelColor& c);
 	void draw_filled_rectangle(const Rect<int>& rect, const PixelColor& c);
+	void draw_ascii(const Vector2D<int>& pos, char ch, const PixelColor& c);
 	PixelWriter& pixel_writer();
 
 	PixelWriter& raw_pixel_writer();
