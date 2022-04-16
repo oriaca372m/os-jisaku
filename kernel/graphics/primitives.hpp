@@ -84,4 +84,9 @@ struct Rect final {
 	constexpr bool is_crossing(const Rect<T>& other) const {
 		return left < other.right && top < other.bottom && other.left < right && other.top < bottom;
 	}
+
+	// thisがotherを完全に囲んでいたらtrue
+	constexpr bool includes(const Rect<T>& other) const {
+		return left <= other.left && top <= other.top && other.right <= right && other.bottom <= bottom;
+	}
 };

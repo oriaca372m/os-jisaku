@@ -46,7 +46,7 @@ void LayerManager::draw() const {
 	}
 }
 
-void LayerManager::damage(const std::vector<Rect<int>>& rects) {
+void LayerManager::damage(unsigned int layer_id, const std::vector<Rect<int>>& rects) {
 	if (buffer_ == nullptr || rects.empty()) {
 		return;
 	}
@@ -56,8 +56,29 @@ void LayerManager::damage(const std::vector<Rect<int>>& rects) {
 		merged_rect = merged_rect.merge(rects[i]);
 	}
 
-	for (const auto& layer : layer_stack_) {
-		layer->draw_to(*buffer_, merged_rect);
+	auto i = layer_stack_.end();
+	while (i != layer_stack_.begin()) {
+		--i;
+
+		if ((*i)->has_transparency()) {
+			continue;
+		}
+
+		if ((*i)->manager_area().includes(merged_rect)) {
+			break;
+		}
+	}
+
+	{
+		const auto damaged_layer =
+			std::find_if(i, layer_stack_.end(), [layer_id](auto layer) { return layer->id() == layer_id; });
+		if (damaged_layer == layer_stack_.end()) {
+			return;
+		}
+	}
+
+	for (; i != layer_stack_.end(); ++i) {
+		(*i)->draw_to(*buffer_, merged_rect);
 	}
 
 	if (parent_ != nullptr) {

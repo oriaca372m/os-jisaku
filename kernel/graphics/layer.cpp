@@ -17,6 +17,10 @@ void Layer::set_transparent_color(std::optional<PixelColor> c) {
 	transparent_color_ = c;
 }
 
+bool Layer::has_transparency() const {
+	return transparent_color_.has_value();
+}
+
 Rect<int> Layer::manager_area() const {
 	return Rect<int>(pos_, pos_ + size());
 }
@@ -25,7 +29,7 @@ Layer& Layer::move(Vector2D<int> pos) {
 	const auto before = manager_area();
 	pos_ = pos;
 	const auto after = manager_area();
-	manager_.damage({before, after});
+	manager_.damage(id_, {before, after});
 	return *this;
 }
 
@@ -36,7 +40,7 @@ Layer& Layer::move_relative(Vector2D<int> pos_diff) {
 void Layer::damage(const std::vector<Rect<int>>& rects) {
 	std::vector<Rect<int>> res;
 	std::transform(rects.cbegin(), rects.cend(), std::back_inserter(res), [this](auto x) { return x.offset(pos_); });
-	manager_.damage(res);
+	manager_.damage(id_, res);
 };
 
 Painter::Painter(FrameBuffer& buffer, Layer& layer) : buffer_(buffer), layer_(layer) {}

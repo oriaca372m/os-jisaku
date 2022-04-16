@@ -16,6 +16,7 @@ public:
 	virtual Vector2D<int> size() const = 0;
 
 	void set_transparent_color(std::optional<PixelColor> c);
+	bool has_transparency() const;
 
 	Layer& move(Vector2D<int> pos);
 	Layer& move_relative(Vector2D<int> pos_diff);
@@ -27,13 +28,13 @@ public:
 	// rectsはこのLayerの座標空間
 	void damage(const std::vector<Rect<int>>& rects);
 
+	Rect<int> manager_area() const;
+
 protected:
 	LayerManager& manager_;
 	const unsigned int id_;
 	Vector2D<int> pos_ = {0, 0};
 	std::optional<PixelColor> transparent_color_ = std::nullopt;
-
-	Rect<int> manager_area() const;
 };
 
 class Painter final {

@@ -22,9 +22,9 @@ public:
 	void up_down(unsigned int id, int new_height);
 	void hide(unsigned int id);
 
-	// 属するLayerのコンテンツの範囲rectsが更新された時呼ばれる
+	// layer_idを持つ属するLayerのコンテンツの範囲rectsが更新された時呼ばれる
 	// rectsはこのLayerManagerの座標空間
-	void damage(const std::vector<Rect<int>>& rects);
+	void damage(unsigned int layer_id, const std::vector<Rect<int>>& rects);
 
 private:
 	const PixelFormat pixel_format_;
