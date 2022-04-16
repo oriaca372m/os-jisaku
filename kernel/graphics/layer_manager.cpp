@@ -28,6 +28,15 @@ Layer* LayerManager::find_layer(unsigned int id) {
 	return it->get();
 }
 
+decltype(LayerManager::layer_stack_)::iterator LayerManager::find_layer_stack_itr(unsigned int id) {
+	return find_layer_stack_itr(id, layer_stack_.begin());
+}
+
+decltype(LayerManager::layer_stack_)::iterator
+LayerManager::find_layer_stack_itr(unsigned int id, decltype(layer_stack_)::iterator begin) {
+	return std::find_if(begin, layer_stack_.end(), [id](const auto& elm) { return elm->id() == id; });
+}
+
 void LayerManager::move(unsigned int id, Vector2D<int> new_position) {
 	find_layer(id)->move(new_position);
 }
@@ -69,12 +78,8 @@ void LayerManager::damage(unsigned int layer_id, const std::vector<Rect<int>>& r
 		}
 	}
 
-	{
-		const auto damaged_layer =
-			std::find_if(i, layer_stack_.end(), [layer_id](auto layer) { return layer->id() == layer_id; });
-		if (damaged_layer == layer_stack_.end()) {
-			return;
-		}
+	if (find_layer_stack_itr(layer_id, i) == layer_stack_.end()) {
+		return;
 	}
 
 	for (; i != layer_stack_.end(); ++i) {
@@ -87,11 +92,11 @@ void LayerManager::damage(unsigned int layer_id, const std::vector<Rect<int>>& r
 }
 
 void LayerManager::hide(unsigned int id) {
-	const auto layer = find_layer(id);
-	const auto pos = std::find(layer_stack_.cbegin(), layer_stack_.cend(), layer);
+	const auto pos = find_layer_stack_itr(id);
 	if (pos != layer_stack_.end()) {
-		layer_stack_.erase(pos);
+		return;
 	}
+	layer_stack_.erase(pos);
 }
 
 void LayerManager::up_down(unsigned int id, int new_height) {
@@ -105,7 +110,7 @@ void LayerManager::up_down(unsigned int id, int new_height) {
 	}
 
 	const auto layer = find_layer(id);
-	const auto old_pos = std::find(layer_stack_.cbegin(), layer_stack_.cend(), layer);
+	const auto old_pos = find_layer_stack_itr(id);
 	auto new_pos = layer_stack_.cbegin() + new_height;
 
 	if (old_pos == layer_stack_.end()) {

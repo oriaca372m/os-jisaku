@@ -36,6 +36,8 @@ private:
 	unsigned int latest_id_ = 0;
 
 	Layer* find_layer(unsigned int id);
+	decltype(layer_stack_)::iterator find_layer_stack_itr(unsigned int id);
+	decltype(layer_stack_)::iterator find_layer_stack_itr(unsigned int id, decltype(layer_stack_)::iterator begin);
 };
 
 inline LayerManager* layer_manager = nullptr;
