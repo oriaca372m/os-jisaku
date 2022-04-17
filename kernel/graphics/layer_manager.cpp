@@ -65,6 +65,8 @@ void LayerManager::damage(unsigned int layer_id, const std::vector<Rect<int>>& r
 		merged_rect = merged_rect.merge(rects[i]);
 	}
 
+	// 不透明でdamage範囲を完全に含む最前面のレイヤーiを探す
+	// それより背面にあるレイヤーはレイヤーiに隠されるので描画する必要が無い
 	auto i = layer_stack_.end();
 	while (i != layer_stack_.begin()) {
 		--i;
@@ -78,6 +80,7 @@ void LayerManager::damage(unsigned int layer_id, const std::vector<Rect<int>>& r
 		}
 	}
 
+	// damageされたレイヤーがレイヤーi以上に前面になければ描画をスキップ
 	if (find_layer_stack_itr(layer_id, i) == layer_stack_.end()) {
 		return;
 	}

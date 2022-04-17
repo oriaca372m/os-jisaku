@@ -13,19 +13,17 @@ namespace {
 		const auto decrease_d = [](int v, int d) { return d < 0 ? v + d : v; };
 		const auto increase_d = [](int v, int d) { return d < 0 ? v - d : v; };
 
-		const auto prevent_minus = [](int v) { return std::max(v, 0); };
-
 		// src_posが負の時の座標調整
 		// src_posが負ならその分sizeを縮め、to_posを増やし、src_posを0にする
 		size = size.map(decrease_d, src_pos);
 		to_pos = to_pos.map(increase_d, src_pos);
-		src_pos = src_pos.map(prevent_minus);
+		src_pos = src_pos.max({0, 0});
 
 		// to_posが負の時の座標調整
 		// to_posが負ならその分sizeを縮め、to_posを増やし、to_posを0にする
 		size = size.map(decrease_d, to_pos);
 		src_pos = src_pos.map(increase_d, to_pos);
-		to_pos = to_pos.map(prevent_minus);
+		to_pos = to_pos.max({0, 0});
 
 		// sizeがto/srcの大きさを超えないように
 		size = size.map(

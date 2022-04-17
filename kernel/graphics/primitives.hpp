@@ -19,6 +19,14 @@ struct Vector2D final {
 		return {x - rhs.x, y - rhs.y};
 	}
 
+	constexpr Vector2D<T> min(const Vector2D<T>& other) const {
+		return {std::min(x, other.x), std::min(y, other.y)};
+	}
+
+	constexpr Vector2D<T> max(const Vector2D<T>& other) const {
+		return {std::max(x, other.x), std::max(y, other.y)};
+	}
+
 	template <typename U>
 	constexpr explicit operator Vector2D<U>() const {
 		return {static_cast<U>(x), static_cast<U>(y)};
