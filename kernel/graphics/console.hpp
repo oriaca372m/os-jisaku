@@ -41,9 +41,7 @@ public:
 	void put_string(const char* s) override;
 
 private:
-	void redraw(Painter& painter);
 	void new_line(Painter& painter);
-	void draw_char_at(Painter& painter, int x, int y, char c);
 
 	BufferLayer& layer_;
 	const PixelColor fg_color_;

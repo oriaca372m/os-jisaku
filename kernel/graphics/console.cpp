@@ -72,7 +72,9 @@ void Console::draw_char_at(int x, int y, char c) {
 }
 
 FastConsole::FastConsole(const PixelColor& fg_color, const PixelColor& bg_color, BufferLayer& layer) :
-	layer_(layer), fg_color_(fg_color), bg_color_(bg_color), cursor_row_(0), cursor_column_(0) {}
+	layer_(layer), fg_color_(fg_color), bg_color_(bg_color), cursor_row_(0), cursor_column_(0) {
+	layer_.start_paint().draw_filled_rectangle({0, 0, 8 * columns, 16 * rows}, bg_color_);
+}
 
 void FastConsole::put_string(const char* s) {
 	auto painter = layer_.start_paint();
@@ -85,7 +87,7 @@ void FastConsole::put_string(const char* s) {
 
 	retry:
 		if (cursor_column_ < columns) {
-			draw_char_at(painter, cursor_column_, cursor_row_, *s);
+			painter.draw_ascii({cursor_column_ * 8, cursor_row_ * 16}, *s, fg_color_);
 			++cursor_column_;
 		} else {
 			new_line(painter);
@@ -103,12 +105,5 @@ void FastConsole::new_line(Painter& painter) {
 	}
 
 	painter.copy_y(0, 16, rows * 16);
-	painter.draw_filled_rectangle({{0, cursor_row_ * 16}, {8 * columns, (cursor_row_ + 1) * 16}}, bg_color_);
-}
-
-void FastConsole::draw_char_at(Painter& painter, int x, int y, char c) {
-	if (c == u8'\0') {
-		return;
-	}
-	painter.draw_ascii({x * 8, y * 16}, c, fg_color_);
+	painter.draw_filled_rectangle({0, cursor_row_ * 16, 8 * columns, (cursor_row_ + 1) * 16}, bg_color_);
 }
