@@ -31,10 +31,6 @@ void Console::put_string(const char* s) {
 			goto retry;
 		}
 	}
-
-	if (layer_manager != nullptr) {
-		layer_manager->draw();
-	}
 }
 
 void Console::new_line() {

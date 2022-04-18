@@ -129,7 +129,6 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 
 	FrameBuffer screen(frame_buffer_config);
 	layer_manager = new LayerManager(frame_buffer_config.pixel_format);
-	layer_manager->set_buffer(&screen);
 
 	auto bg_layer = layer_manager->new_buffer_layer({frame_width, frame_width});
 	bg_layer->move({0, 0});
@@ -143,8 +142,6 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 		painter.draw_rectangle({{10, frame_height - 40}, {40, frame_height - 10}}, {160, 160, 160});
 
 		painter.draw_filled_rectangle({{500, 500}, {600, 600}}, {255, 0, 0});
-
-		console_instance.set_pixel_writer(&painter.raw_pixel_writer());
 	}
 
 	auto console_layer = layer_manager->new_buffer_layer({640, 400});
@@ -188,6 +185,9 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 	layer_manager->up_down(console_layer->id(), 1);
 	layer_manager->up_down(group_layer->id(), 2);
 	layer_manager->up_down(mouse_layer->id(), 3);
+
+	layer_manager->set_buffer(&screen);
+	layer_manager->draw();
 
 	printk(u8"chino chan kawaii!\n");
 	printk(u8"gochuumon wa usagi desu ka?\n");
