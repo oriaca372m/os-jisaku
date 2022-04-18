@@ -4,6 +4,7 @@
 
 class Layer;
 class BufferLayer;
+class GroupLayer;
 
 class LayerManager {
 public:
@@ -13,6 +14,7 @@ public:
 	void set_parent(Layer* parent);
 
 	BufferLayer* new_buffer_layer(Vector2D<int> size);
+	GroupLayer* new_group_layer(Vector2D<int> size);
 
 	void draw() const;
 

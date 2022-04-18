@@ -164,11 +164,36 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 	mouse_layer_id = mouse_layer->id();
 	mouse_layer->move({200, 200});
 
+	auto group_layer = layer_manager->new_group_layer({500, 500});
+	group_layer->move({0, 0});
+
+	Layer* test_layer;
+
+	{
+		auto& group_manager = group_layer->layer_manager();
+
+		auto bg = group_manager.new_buffer_layer({500, 500});
+		const auto tc = PixelColor({0x00, 0xff, 0x00});
+		group_layer->set_transparent_color(tc);
+		bg->start_paint().draw_filled_rectangle({0, 0, 500, 500}, tc);
+
+		auto test = group_manager.new_buffer_layer({100, 100});
+		test_layer = test;
+		{
+			auto p = test->start_paint();
+			p.draw_filled_rectangle(Rect<int>::with_size({0, 0}, {100, 100}), {0xff, 0x00, 0xff});
+			p.draw_filled_rectangle(Rect<int>::with_size({30, 30}, {50, 50}), {0xff, 0xff, 0x00});
+		}
+		test->move({10, 10});
+
+		group_manager.up_down(bg->id(), 0);
+		group_manager.up_down(test->id(), 1);
+	}
+
 	layer_manager->up_down(bg_layer->id(), 0);
 	layer_manager->up_down(console_layer->id(), 1);
-	layer_manager->up_down(mouse_layer->id(), 2);
-
-	layer_manager->draw();
+	layer_manager->up_down(group_layer->id(), 2);
+	layer_manager->up_down(mouse_layer->id(), 3);
 
 	printk(u8"chino chan kawaii!\n");
 	printk(u8"gochuumon wa usagi desu ka?\n");
@@ -284,7 +309,13 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 		}
 	}
 
+	int c = 0;
+
 	while (true) {
+		++c;
+		test_layer->move({10, c % 100});
+		printk("%d\n", c);
+
 		__asm__("cli");
 		if (main_queue->count() == 0) {
 			__asm__(

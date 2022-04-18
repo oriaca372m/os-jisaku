@@ -129,3 +129,33 @@ void BufferLayer::draw_to(FrameBuffer& dst, Rect<int> damage) const {
 Painter BufferLayer::start_paint() {
 	return Painter(*buffer_, *this);
 }
+
+GroupLayer::GroupLayer(LayerManager& manager, unsigned int id, const FrameBufferConfig& config) :
+	Layer(manager, id), canvas_(config.pixel_format) {
+	canvas_.set_parent(this);
+
+	buffer_ = std::make_unique<FrameBuffer>(config);
+	canvas_.set_buffer(buffer_.get());
+}
+
+Vector2D<int> GroupLayer::size() const {
+	return buffer_->size();
+}
+
+void GroupLayer::draw_to(FrameBuffer& dst) const {
+	dst.copy_from(*buffer_, pos_, transparent_color_);
+}
+
+void GroupLayer::draw_to(FrameBuffer& dst, Rect<int> damage) const {
+	const auto layer_rect = manager_area();
+	if (!damage.is_crossing(layer_rect)) {
+		return;
+	}
+
+	const auto cross = damage.cross(layer_rect);
+	dst.copy_from(*buffer_, cross.top_left(), cross.top_left() - pos_, cross.size(), transparent_color_);
+}
+
+LayerManager& GroupLayer::layer_manager() {
+	return canvas_;
+}

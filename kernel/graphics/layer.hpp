@@ -79,7 +79,18 @@ private:
 	std::unique_ptr<FrameBuffer> buffer_;
 };
 
-// class LayerManagerLayer final : public Layer {
-// 	LayerManagerLayer(LayerManager* parent);
-// 	LayerManager canvas;
-// };
+class GroupLayer final : public Layer {
+public:
+	GroupLayer(LayerManager& parent, unsigned int id, const FrameBufferConfig& config);
+
+	Vector2D<int> size() const override;
+
+	void draw_to(FrameBuffer& dst) const override;
+	void draw_to(FrameBuffer& dst, Rect<int> damage) const override;
+
+	LayerManager& layer_manager();
+
+private:
+	LayerManager canvas_;
+	std::unique_ptr<FrameBuffer> buffer_;
+};

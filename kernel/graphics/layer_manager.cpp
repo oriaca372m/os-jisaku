@@ -20,6 +20,14 @@ BufferLayer* LayerManager::new_buffer_layer(Vector2D<int> size) {
 	return layer_raw_ptr;
 }
 
+GroupLayer* LayerManager::new_group_layer(Vector2D<int> size) {
+	++latest_id_;
+	auto layer = std::make_unique<GroupLayer>(*this, latest_id_, FrameBufferConfig(size.x, size.y, pixel_format_));
+	auto layer_raw_ptr = layer.get();
+	layers_.push_back(std::move(layer));
+	return layer_raw_ptr;
+}
+
 Layer* LayerManager::find_layer(unsigned int id) {
 	const auto it = std::find_if(layers_.cbegin(), layers_.cend(), [id](const auto& elm) { return elm->id() == id; });
 	if (it == layers_.end()) {
@@ -118,6 +126,7 @@ void LayerManager::up_down(unsigned int id, int new_height) {
 
 	if (old_pos == layer_stack_.end()) {
 		layer_stack_.insert(new_pos, layer);
+		damage(layer->id(), {layer->manager_area()});
 		return;
 	}
 
@@ -127,4 +136,5 @@ void LayerManager::up_down(unsigned int id, int new_height) {
 
 	layer_stack_.erase(old_pos);
 	layer_stack_.insert(new_pos, layer);
+	damage(layer->id(), {layer->manager_area()});
 }
