@@ -1,10 +1,7 @@
 #pragma once
 
-#include <algorithm>
 #include <cstdint>
-#include <memory>
 
-#include "frame_buffer_config.hpp"
 #include "primitives.hpp"
 
 struct PixelColor {

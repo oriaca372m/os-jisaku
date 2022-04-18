@@ -1,8 +1,6 @@
 #pragma once
 
-#include <algorithm>
-#include <memory>
-
+#include "frame_buffer_config.hpp"
 #include "graphics.hpp"
 
 class DevicePixelWriter : public PixelWriter {
