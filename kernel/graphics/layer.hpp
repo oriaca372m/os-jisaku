@@ -5,6 +5,7 @@
 
 #include "frame_buffer.hpp"
 #include "layer_manager.hpp"
+#include "painter.hpp"
 
 class Layer {
 public:
@@ -35,33 +36,6 @@ protected:
 	const unsigned int id_;
 	Vector2D<int> pos_ = {0, 0};
 	std::optional<PixelColor> transparent_color_ = std::nullopt;
-};
-
-class Painter final {
-public:
-	Painter(FrameBuffer& buffer, Layer& layer);
-	~Painter();
-
-	void end();
-
-	void copy_y(int dst_y, int src_y, int src_end_y);
-
-	void draw_rectangle(const Rect<int>& rect, const PixelColor& c);
-	void draw_filled_rectangle(const Rect<int>& rect, const PixelColor& c);
-	void draw_ascii(const Vector2D<int>& pos, char ch, const PixelColor& c);
-	PixelWriter& pixel_writer();
-
-	PixelWriter& raw_pixel_writer();
-	FrameBuffer& raw_buffer();
-	void raw_damage(const Rect<int>& rect);
-
-private:
-	FrameBuffer& buffer_;
-	Layer& layer_;
-
-	bool damaged_ = false;
-	Vector2D<int> damage_top_left_;
-	Vector2D<int> damage_bottom_right_;
 };
 
 class BufferLayer final : public Layer {

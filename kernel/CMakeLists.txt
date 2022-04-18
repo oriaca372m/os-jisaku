@@ -25,6 +25,7 @@ add_executable(kernel.elf
 	graphics/mouse.cpp
 	graphics/layer.cpp
 	graphics/layer_manager.cpp
+	graphics/painter.cpp
 	graphics/frame_buffer.cpp
 	graphics/device_pixel_writer.cpp
 )
