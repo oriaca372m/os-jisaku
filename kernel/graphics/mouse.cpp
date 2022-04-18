@@ -47,7 +47,7 @@ namespace {
 }
 
 BufferLayer* make_mouse_layer(LayerManager& manager) {
-	auto layer = manager.new_buffer_layer({mouse_cursor_width, mouse_cursor_height});
+	auto layer = manager.new_layer<BufferLayer>(Vector2D<int>(mouse_cursor_width, mouse_cursor_height));
 	layer->set_transparent_color(PixelColor{0xFF, 0x00, 0x00});
 	draw_mouse_cursor(&layer->start_paint().pixel_writer(), {0, 0});
 	return layer;

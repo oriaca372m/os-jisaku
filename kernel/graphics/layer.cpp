@@ -104,8 +104,9 @@ void Painter::raw_damage(const Rect<int>& rect) {
 	damage_bottom_right_ = damage_bottom_right_.max(rect.bottom_right());
 }
 
-BufferLayer::BufferLayer(LayerManager& manager, unsigned int id, const FrameBufferConfig& config) : Layer(manager, id) {
-	buffer_ = std::make_unique<FrameBuffer>(config);
+BufferLayer::BufferLayer(LayerManager& manager, unsigned int id, PixelFormat pixel_format, Vector2D<int> size) :
+	Layer(manager, id) {
+	buffer_ = std::make_unique<FrameBuffer>(FrameBufferConfig(size.x, size.y, pixel_format));
 }
 
 Vector2D<int> BufferLayer::size() const {
@@ -130,11 +131,11 @@ Painter BufferLayer::start_paint() {
 	return Painter(*buffer_, *this);
 }
 
-GroupLayer::GroupLayer(LayerManager& manager, unsigned int id, const FrameBufferConfig& config) :
-	Layer(manager, id), canvas_(config.pixel_format) {
+GroupLayer::GroupLayer(LayerManager& manager, unsigned int id, PixelFormat pixel_format, Vector2D<int> size) :
+	Layer(manager, id), canvas_(pixel_format) {
 	canvas_.set_parent(this);
 
-	buffer_ = std::make_unique<FrameBuffer>(config);
+	buffer_ = std::make_unique<FrameBuffer>(FrameBufferConfig(size.x, size.y, pixel_format));
 	canvas_.set_buffer(buffer_.get());
 }
 

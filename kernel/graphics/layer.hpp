@@ -8,7 +8,7 @@
 
 class Layer {
 public:
-	Layer(LayerManager& manager, unsigned int id = 0);
+	Layer(LayerManager& manager, unsigned int id);
 	virtual ~Layer() = default;
 
 	unsigned int id() const;
@@ -66,7 +66,7 @@ private:
 
 class BufferLayer final : public Layer {
 public:
-	BufferLayer(LayerManager& manager, unsigned int id, const FrameBufferConfig& config);
+	BufferLayer(LayerManager& manager, unsigned int id, PixelFormat pixel_format, Vector2D<int> size);
 
 	Vector2D<int> size() const override;
 
@@ -81,7 +81,7 @@ private:
 
 class GroupLayer final : public Layer {
 public:
-	GroupLayer(LayerManager& parent, unsigned int id, const FrameBufferConfig& config);
+	GroupLayer(LayerManager& manager, unsigned int id, PixelFormat pixel_format, Vector2D<int> size);
 
 	Vector2D<int> size() const override;
 

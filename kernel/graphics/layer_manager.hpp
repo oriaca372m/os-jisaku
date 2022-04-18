@@ -2,19 +2,27 @@
 
 #include "frame_buffer.hpp"
 
-class Layer;
-class BufferLayer;
-class GroupLayer;
+#include <memory>
+#include <utility>
+#include <vector>
 
-class LayerManager {
+class Layer;
+
+class LayerManager final {
 public:
 	LayerManager(PixelFormat pixel_format);
 
 	void set_buffer(FrameBuffer* buffer);
 	void set_parent(Layer* parent);
 
-	BufferLayer* new_buffer_layer(Vector2D<int> size);
-	GroupLayer* new_group_layer(Vector2D<int> size);
+	template <typename T, typename... Args>
+	T* new_layer(Args&&... args) {
+		++latest_id_;
+		auto layer = std::make_unique<T>(*this, latest_id_, pixel_format_, std::forward<Args>(args)...);
+		auto layer_raw_ptr = layer.get();
+		layers_.push_back(std::move(layer));
+		return layer_raw_ptr;
+	}
 
 	void draw() const;
 

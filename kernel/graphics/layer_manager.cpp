@@ -12,22 +12,6 @@ void LayerManager::set_parent(Layer* parent) {
 	parent_ = parent;
 }
 
-BufferLayer* LayerManager::new_buffer_layer(Vector2D<int> size) {
-	++latest_id_;
-	auto layer = std::make_unique<BufferLayer>(*this, latest_id_, FrameBufferConfig(size.x, size.y, pixel_format_));
-	auto layer_raw_ptr = layer.get();
-	layers_.push_back(std::move(layer));
-	return layer_raw_ptr;
-}
-
-GroupLayer* LayerManager::new_group_layer(Vector2D<int> size) {
-	++latest_id_;
-	auto layer = std::make_unique<GroupLayer>(*this, latest_id_, FrameBufferConfig(size.x, size.y, pixel_format_));
-	auto layer_raw_ptr = layer.get();
-	layers_.push_back(std::move(layer));
-	return layer_raw_ptr;
-}
-
 Layer* LayerManager::find_layer(unsigned int id) {
 	const auto it = std::find_if(layers_.cbegin(), layers_.cend(), [id](const auto& elm) { return elm->id() == id; });
 	if (it == layers_.end()) {

@@ -130,7 +130,7 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 	FrameBuffer screen(frame_buffer_config);
 	layer_manager = new LayerManager(frame_buffer_config.pixel_format);
 
-	auto bg_layer = layer_manager->new_buffer_layer({frame_width, frame_width});
+	auto bg_layer = layer_manager->new_layer<BufferLayer>(Vector2D<int>(frame_width, frame_width));
 	bg_layer->move({0, 0});
 
 	{
@@ -144,7 +144,7 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 		painter.draw_filled_rectangle({{500, 500}, {600, 600}}, {255, 0, 0});
 	}
 
-	auto console_layer = layer_manager->new_buffer_layer({640, 400});
+	auto console_layer = layer_manager->new_layer<BufferLayer>(Vector2D<int>(640, 400));
 	console_layer->move({200, 150});
 
 	auto fast_console = FastConsole(desktop_fg_color, {0, 0, 123}, *console_layer);
@@ -155,7 +155,7 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 	mouse_layer_id = mouse_layer->id();
 	mouse_layer->move({200, 200});
 
-	auto group_layer = layer_manager->new_group_layer({500, 500});
+	auto group_layer = layer_manager->new_layer<GroupLayer>(Vector2D<int>(500, 500));
 	group_layer->move({0, 0});
 
 	Layer* test_layer;
@@ -163,12 +163,12 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 	{
 		auto& group_manager = group_layer->layer_manager();
 
-		auto bg = group_manager.new_buffer_layer({500, 500});
+		auto bg = group_manager.new_layer<BufferLayer>(Vector2D<int>(500, 500));
 		const auto tc = PixelColor({0x00, 0xff, 0x00});
 		group_layer->set_transparent_color(tc);
 		bg->start_paint().draw_filled_rectangle({0, 0, 500, 500}, tc);
 
-		auto test = group_manager.new_buffer_layer({100, 100});
+		auto test = group_manager.new_layer<BufferLayer>(Vector2D<int>(100, 100));
 		test_layer = test;
 		{
 			auto p = test->start_paint();
