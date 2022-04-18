@@ -37,9 +37,9 @@ namespace {
 				if (c == '@') {
 					writer.write(pos.x + dx, pos.y + dy, {0x00, 0x00, 0x00});
 				} else if (c == '.') {
-					writer.write(pos.x + dx, pos.y + dy, {0xFF, 0xFF, 0xFF});
+					writer.write(pos.x + dx, pos.y + dy, {0xff, 0xff, 0xff});
 				} else {
-					writer.write(pos.x + dx, pos.y + dy, {0xFF, 0x00, 0x00});
+					writer.write(pos.x + dx, pos.y + dy, {0xff, 0x00, 0x00});
 				}
 			}
 		}
@@ -48,7 +48,7 @@ namespace {
 
 BufferLayer* make_mouse_layer(LayerManager& manager) {
 	auto layer = manager.new_layer<BufferLayer>(Vector2D<int>(mouse_cursor_width, mouse_cursor_height));
-	layer->set_transparent_color(PixelColor{0xFF, 0x00, 0x00});
+	layer->set_transparent_color(PixelColor{0xff, 0x00, 0x00});
 	draw_mouse_cursor(layer->start_paint().pixel_writer(), {0, 0});
 	return layer;
 }
