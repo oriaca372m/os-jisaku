@@ -4,6 +4,7 @@ void RGBResv8BitPerColorPixelWriter::write_to_buf(std::uint8_t* p, const PixelCo
 	p[0] = c.r;
 	p[1] = c.g;
 	p[2] = c.b;
+	p[3] = 0;
 }
 
 PixelColor RGBResv8BitPerColorPixelWriter::get_pixel_at(int x, int y) const {
@@ -15,6 +16,7 @@ void BGRResv8BitPerColorPixelWriter::write_to_buf(std::uint8_t* p, const PixelCo
 	p[0] = c.b;
 	p[1] = c.g;
 	p[2] = c.r;
+	p[3] = 0;
 }
 
 PixelColor BGRResv8BitPerColorPixelWriter::get_pixel_at(int x, int y) const {
