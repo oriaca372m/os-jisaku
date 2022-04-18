@@ -51,8 +51,11 @@ Painter::~Painter() {
 }
 
 void Painter::end() {
-	layer_.damage(damages_);
-	damages_.clear();
+	if (!damaged_) {
+		return;
+	}
+
+	layer_.damage({{damage_top_left_, damage_bottom_right_}});
 }
 
 void Painter::copy_y(int dst_y, int src_y, int src_end_y) {
@@ -90,7 +93,15 @@ FrameBuffer& Painter::raw_buffer() {
 }
 
 void Painter::raw_damage(const Rect<int>& rect) {
-	damages_.push_back(rect);
+	if (!damaged_) {
+		damage_top_left_ = rect.top_left();
+		damage_bottom_right_ = rect.bottom_right();
+		damaged_ = true;
+		return;
+	}
+
+	damage_top_left_ = damage_top_left_.min(rect.top_left());
+	damage_bottom_right_ = damage_bottom_right_.max(rect.bottom_right());
 }
 
 BufferLayer::BufferLayer(LayerManager& manager, unsigned int id, const FrameBufferConfig& config) : Layer(manager, id) {

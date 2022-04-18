@@ -59,7 +59,9 @@ private:
 	FrameBuffer& buffer_;
 	Layer& layer_;
 
-	std::vector<Rect<int>> damages_;
+	bool damaged_ = false;
+	Vector2D<int> damage_top_left_;
+	Vector2D<int> damage_bottom_right_;
 };
 
 class BufferLayer final : public Layer {
