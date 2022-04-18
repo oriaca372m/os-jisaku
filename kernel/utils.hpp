@@ -3,7 +3,6 @@
 #include <cstdio>
 
 #include "graphics/console.hpp"
-#include "timer.hpp"
 
 template <typename... Args>
 int printk(const char* format, Args... args) {
@@ -19,7 +18,6 @@ int printk(const char* format, Args... args) {
 	}
 
 	global_console->put_string(buf);
-
 	return result;
 }
 
