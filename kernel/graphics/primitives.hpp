@@ -9,13 +9,11 @@ struct Vector2D final {
 	T x;
 	T y;
 
-	template <typename U>
-	constexpr Vector2D<T> operator+(const Vector2D<U>& rhs) const {
+	constexpr Vector2D<T> operator+(const Vector2D<T>& rhs) const {
 		return {x + rhs.x, y + rhs.y};
 	}
 
-	template <typename U>
-	constexpr Vector2D<T> operator-(const Vector2D<U>& rhs) const {
+	constexpr Vector2D<T> operator-(const Vector2D<T>& rhs) const {
 		return {x - rhs.x, y - rhs.y};
 	}
 
