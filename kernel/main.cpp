@@ -14,7 +14,6 @@
 #include "graphics/graphics.hpp"
 #include "graphics/layer.hpp"
 #include "graphics/mouse.hpp"
-#include "graphics/window.hpp"
 #include "interrupt.hpp"
 #include "logger.hpp"
 #include "memory_manager.hpp"

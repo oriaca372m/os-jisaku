@@ -1,7 +1,5 @@
 #include "mouse.hpp"
 
-#include <memory>
-
 namespace {
 	const int mouse_cursor_width = 15;
 	const int mouse_cursor_height = 24;
@@ -46,13 +44,6 @@ namespace {
 			}
 		}
 	}
-}
-
-std::shared_ptr<Window> make_mouse_window(PixelFormat pixel_format) {
-	const auto window = std::make_shared<Window>(mouse_cursor_width, mouse_cursor_height, pixel_format);
-	window->set_transparent_color(PixelColor{0xFF, 0x00, 0x00});
-	draw_mouse_cursor(window->writer(), {0, 0});
-	return window;
 }
 
 BufferLayer* make_mouse_layer(LayerManager& manager) {
