@@ -28,9 +28,13 @@
 
 namespace {
 	unsigned int mouse_layer_id;
+	Vector2D<int> screen_size;
+	Vector2D<int> mouse_position = {0, 0};
 
 	void mouse_observer(int8_t dx, int8_t dy) {
-		layer_manager->move_relative(mouse_layer_id, {dx, dy});
+		const auto new_pos = mouse_position + Vector2D<int>(dx, dy);
+		mouse_position = new_pos.max({0, 0}).min(screen_size - Vector2D<int>(1, 1));
+		layer_manager->move(mouse_layer_id, mouse_position);
 	}
 
 	struct Message {
@@ -67,6 +71,7 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 
 	const int frame_width = frame_buffer_config.horizontal_resolution;
 	const int frame_height = frame_buffer_config.vertical_resolution;
+	screen_size = {frame_width, frame_height};
 
 	Console console_instance(desktop_fg_color, desktop_bg_color);
 	global_console = &console_instance;
