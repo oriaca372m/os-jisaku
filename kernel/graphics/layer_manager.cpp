@@ -89,9 +89,8 @@ void LayerManager::damage(unsigned int layer_id, const std::vector<Rect<int>>& r
 void LayerManager::hide(unsigned int id) {
 	const auto pos = find_layer_stack_itr(id);
 	if (pos != layer_stack_.end()) {
-		return;
+		layer_stack_.erase(pos);
 	}
-	layer_stack_.erase(pos);
 }
 
 void LayerManager::up_down(unsigned int id, int new_height) {
