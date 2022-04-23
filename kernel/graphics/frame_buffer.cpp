@@ -35,7 +35,7 @@ namespace {
 		std::uint8_t* dst_buf,
 		const std::uint8_t* src_buf,
 		std::uint8_t* tc_buf,
-		const Vector2D<int>& size,
+		Vector2D<int> size,
 		std::size_t bpp,
 		std::size_t dst_bpl,
 		std::size_t src_bpl) {
@@ -63,7 +63,7 @@ namespace {
 		std::uint8_t* dst_buf,
 		const std::uint8_t* src_buf,
 		std::uint8_t* tc_buf,
-		const Vector2D<int>& size,
+		Vector2D<int> size,
 		std::size_t dst_bpl,
 		std::size_t src_bpl) {
 		const auto tc = *reinterpret_cast<std::uint32_t*>(tc_buf);
