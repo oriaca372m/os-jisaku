@@ -108,9 +108,13 @@ void LayerManager::up_down(unsigned int id, int new_height) {
 	const auto old_pos = find_layer_stack_itr(id);
 	auto new_pos = layer_stack_.cbegin() + new_height;
 
-	if (old_pos == layer_stack_.end()) {
-		layer_stack_.insert(new_pos, layer);
+	const auto insert = [this](const auto& pos, const auto& layer) {
+		layer_stack_.insert(pos, layer);
 		damage(layer->id(), {layer->manager_area()});
+	};
+
+	if (old_pos == layer_stack_.end()) {
+		insert(new_pos, layer);
 		return;
 	}
 
@@ -119,6 +123,5 @@ void LayerManager::up_down(unsigned int id, int new_height) {
 	}
 
 	layer_stack_.erase(old_pos);
-	layer_stack_.insert(new_pos, layer);
-	damage(layer->id(), {layer->manager_area()});
+	insert(new_pos, layer);
 }

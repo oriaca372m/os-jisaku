@@ -25,16 +25,15 @@ Rect<int> Layer::manager_area() const {
 	return Rect<int>(pos_, pos_ + size());
 }
 
-Layer& Layer::move(Vector2D<int> pos) {
+void Layer::move(Vector2D<int> pos) {
 	const auto before = manager_area();
 	pos_ = pos;
 	const auto after = manager_area();
 	manager_.damage(id_, {before, after});
-	return *this;
 }
 
-Layer& Layer::move_relative(Vector2D<int> pos_diff) {
-	return move(pos_ + pos_diff);
+void Layer::move_relative(Vector2D<int> pos_diff) {
+	move(pos_ + pos_diff);
 }
 
 void Layer::damage(const std::vector<Rect<int>>& rects) {
@@ -44,16 +43,14 @@ void Layer::damage(const std::vector<Rect<int>>& rects) {
 };
 
 BufferLayer::BufferLayer(LayerManager& manager, unsigned int id, PixelFormat pixel_format, Vector2D<int> size) :
-	Layer(manager, id) {
-	buffer_ = std::make_unique<FrameBuffer>(FrameBufferConfig(size.x, size.y, pixel_format));
-}
+	Layer(manager, id), buffer_(FrameBufferConfig(size.x, size.y, pixel_format)) {}
 
 Vector2D<int> BufferLayer::size() const {
-	return buffer_->size();
+	return buffer_.size();
 }
 
 void BufferLayer::draw_to(FrameBuffer& dst) const {
-	dst.copy_from(*buffer_, pos_, transparent_color_);
+	dst.copy_from(buffer_, pos_, transparent_color_);
 }
 
 void BufferLayer::draw_to(FrameBuffer& dst, Rect<int> damage) const {
@@ -63,27 +60,25 @@ void BufferLayer::draw_to(FrameBuffer& dst, Rect<int> damage) const {
 	}
 
 	const auto cross = damage.cross(layer_rect);
-	dst.copy_from(*buffer_, cross.top_left(), cross.top_left() - pos_, cross.size(), transparent_color_);
+	dst.copy_from(buffer_, cross.top_left(), cross.top_left() - pos_, cross.size(), transparent_color_);
 }
 
 Painter BufferLayer::start_paint() {
-	return Painter(*buffer_, *this);
+	return Painter(buffer_, *this);
 }
 
 GroupLayer::GroupLayer(LayerManager& manager, unsigned int id, PixelFormat pixel_format, Vector2D<int> size) :
-	Layer(manager, id), canvas_(pixel_format) {
-	canvas_.set_parent(this);
-
-	buffer_ = std::make_unique<FrameBuffer>(FrameBufferConfig(size.x, size.y, pixel_format));
-	canvas_.set_buffer(buffer_.get());
+	Layer(manager, id), child_manager(pixel_format), buffer_(FrameBufferConfig(size.x, size.y, pixel_format)) {
+	child_manager.set_parent(this);
+	child_manager.set_buffer(&buffer_);
 }
 
 Vector2D<int> GroupLayer::size() const {
-	return buffer_->size();
+	return buffer_.size();
 }
 
 void GroupLayer::draw_to(FrameBuffer& dst) const {
-	dst.copy_from(*buffer_, pos_, transparent_color_);
+	dst.copy_from(buffer_, pos_, transparent_color_);
 }
 
 void GroupLayer::draw_to(FrameBuffer& dst, Rect<int> damage) const {
@@ -93,9 +88,9 @@ void GroupLayer::draw_to(FrameBuffer& dst, Rect<int> damage) const {
 	}
 
 	const auto cross = damage.cross(layer_rect);
-	dst.copy_from(*buffer_, cross.top_left(), cross.top_left() - pos_, cross.size(), transparent_color_);
+	dst.copy_from(buffer_, cross.top_left(), cross.top_left() - pos_, cross.size(), transparent_color_);
 }
 
 LayerManager& GroupLayer::layer_manager() {
-	return canvas_;
+	return child_manager;
 }

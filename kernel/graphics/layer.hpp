@@ -19,8 +19,8 @@ public:
 	void set_transparent_color(std::optional<PixelColor> c);
 	bool has_transparency() const;
 
-	Layer& move(Vector2D<int> pos);
-	Layer& move_relative(Vector2D<int> pos_diff);
+	void move(Vector2D<int> pos);
+	void move_relative(Vector2D<int> pos_diff);
 
 	virtual void draw_to(FrameBuffer& dst) const = 0;
 	virtual void draw_to(FrameBuffer& dst, Rect<int> damage) const = 0;
@@ -29,13 +29,14 @@ public:
 	// rectsはこのLayerの座標空間
 	void damage(const std::vector<Rect<int>>& rects);
 
+	// 属しているLayerManagerの座標空間でこのLayerが表示される領域
 	Rect<int> manager_area() const;
 
 protected:
 	LayerManager& manager_;
 	const unsigned int id_;
 	Vector2D<int> pos_ = {0, 0};
-	std::optional<PixelColor> transparent_color_ = std::nullopt;
+	std::optional<PixelColor> transparent_color_;
 };
 
 class BufferLayer final : public Layer {
@@ -50,7 +51,7 @@ public:
 	Painter start_paint();
 
 private:
-	std::unique_ptr<FrameBuffer> buffer_;
+	FrameBuffer buffer_;
 };
 
 class GroupLayer final : public Layer {
@@ -65,6 +66,6 @@ public:
 	LayerManager& layer_manager();
 
 private:
-	LayerManager canvas_;
-	std::unique_ptr<FrameBuffer> buffer_;
+	LayerManager child_manager;
+	FrameBuffer buffer_;
 };

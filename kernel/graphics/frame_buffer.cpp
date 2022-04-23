@@ -121,13 +121,7 @@ Error FrameBuffer::copy_from(
 	const FrameBuffer& src,
 	Vector2D<int> to_pos,
 	std::optional<PixelColor> transparent_color) {
-	return copy_from(
-		src,
-		to_pos,
-		{0, 0},
-		{std::min(static_cast<int>(config_.horizontal_resolution), static_cast<int>(src.config_.horizontal_resolution)),
-		 std::min(static_cast<int>(config_.vertical_resolution), static_cast<int>(src.config_.vertical_resolution))},
-		transparent_color);
+	return copy_from(src, to_pos, {0, 0}, src.size(), transparent_color);
 }
 
 Error FrameBuffer::copy_from(
