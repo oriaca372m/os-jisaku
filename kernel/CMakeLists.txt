@@ -23,13 +23,19 @@ add_executable(kernel.elf
 	graphics/font.cpp
 	graphics/console.cpp
 	graphics/mouse.cpp
-	graphics/window.cpp
 	graphics/layer.cpp
+	graphics/layer_manager.cpp
+	graphics/painter.cpp
+	graphics/frame_buffer.cpp
+	graphics/device_pixel_writer.cpp
 )
 
 target_include_directories(kernel.elf PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}/../stdlib/build/include/c++/v1"
 	"${CMAKE_CURRENT_SOURCE_DIR}/../stdlib/build/include"
+)
+target_include_directories(kernel.elf PRIVATE
+	"${CMAKE_CURRENT_SOURCE_DIR}"
 )
 target_compile_definitions(kernel.elf PUBLIC __ELF__ _LDBL_EQ_DBL _GNU_SOURCE _POSIX_TIMERS)
 

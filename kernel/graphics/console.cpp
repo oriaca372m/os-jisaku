@@ -1,7 +1,8 @@
+#include <cstring>
+
 #include "console.hpp"
 #include "font.hpp"
-
-#include <cstring>
+#include "layer.hpp"
 
 Console::Console(const PixelColor& fg_color, const PixelColor& bg_color) :
 	fg_color_(fg_color), bg_color_(bg_color), buffer_{}, cursor_row_(0), cursor_column_(0) {}
@@ -68,4 +69,41 @@ void Console::draw_char_at(int x, int y, char c) {
 	}
 
 	write_ascii(*writer_, x * 8, y * 16, c, fg_color_);
+}
+
+FastConsole::FastConsole(const PixelColor& fg_color, const PixelColor& bg_color, BufferLayer& layer) :
+	layer_(layer), fg_color_(fg_color), bg_color_(bg_color), cursor_row_(0), cursor_column_(0) {
+	layer_.start_paint().draw_filled_rectangle({0, 0, 8 * columns, 16 * rows}, bg_color_);
+}
+
+void FastConsole::put_string(const char* s) {
+	auto painter = layer_.start_paint();
+
+	for (; *s != u8'\0'; ++s) {
+		if (*s == u8'\n') {
+			new_line(painter);
+			continue;
+		}
+
+	retry:
+		if (cursor_column_ < columns) {
+			painter.draw_ascii({cursor_column_ * 8, cursor_row_ * 16}, *s, fg_color_);
+			++cursor_column_;
+		} else {
+			new_line(painter);
+			goto retry;
+		}
+	}
+}
+
+void FastConsole::new_line(Painter& painter) {
+	cursor_column_ = 0;
+
+	if (cursor_row_ < rows - 1) {
+		++cursor_row_;
+		return;
+	}
+
+	painter.copy_y(0, 16, rows * 16);
+	painter.draw_filled_rectangle({0, cursor_row_ * 16, 8 * columns, (cursor_row_ + 1) * 16}, bg_color_);
 }

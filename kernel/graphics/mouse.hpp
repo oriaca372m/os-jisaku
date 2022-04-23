@@ -1,5 +1,5 @@
 #pragma once
 
-#include "window.hpp"
+#include "layer.hpp"
 
-std::shared_ptr<Window> make_mouse_window();
+BufferLayer* make_mouse_layer(LayerManager& manager);

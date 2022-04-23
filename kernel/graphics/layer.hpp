@@ -1,50 +1,71 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 
-#include "window.hpp"
+#include "frame_buffer.hpp"
+#include "layer_manager.hpp"
+#include "painter.hpp"
 
 class Layer {
 public:
-	Layer(unsigned int id = 0);
+	Layer(LayerManager& manager, unsigned int id);
+	virtual ~Layer() = default;
 
 	unsigned int id() const;
+	virtual Vector2D<int> pos() const;
+	virtual Vector2D<int> size() const = 0;
 
-	Layer& set_window(const std::shared_ptr<Window>& window);
-	std::shared_ptr<Window> get_window() const;
+	void set_transparent_color(std::optional<PixelColor> c);
+	bool has_transparency() const;
 
-	Layer& move(Vector2D<int> pos);
-	Layer& move_relative(Vector2D<int> pos_diff);
+	void move(Vector2D<int> pos);
+	void move_relative(Vector2D<int> pos_diff);
 
-	void draw_to(PixelWriter& writer) const;
+	virtual void draw_to(FrameBuffer& dst) const = 0;
+	virtual void draw_to(FrameBuffer& dst, Rect<int> damage) const = 0;
 
-private:
-	unsigned int id_;
-	Vector2D<int> pos_;
-	std::shared_ptr<Window> window_;
+	// このLayerのコンテンツの範囲rectsが更新された時呼ばれる
+	// rectsはこのLayerの座標空間
+	void damage(const std::vector<Rect<int>>& rects);
+
+	// 属しているLayerManagerの座標空間でこのLayerが表示される領域
+	Rect<int> manager_area() const;
+
+protected:
+	LayerManager& manager_;
+	const unsigned int id_;
+	Vector2D<int> pos_ = {0, 0};
+	std::optional<PixelColor> transparent_color_;
 };
 
-class LayerManager {
+class BufferLayer final : public Layer {
 public:
-	void set_writer(PixelWriter* writer);
+	BufferLayer(LayerManager& manager, unsigned int id, PixelFormat pixel_format, Vector2D<int> size);
 
-	Layer& new_layer();
+	Vector2D<int> size() const override;
 
-	void draw() const;
+	void draw_to(FrameBuffer& dst) const override;
+	void draw_to(FrameBuffer& dst, Rect<int> damage) const override;
 
-	void move(unsigned int id, Vector2D<int> new_position);
-	void move_relative(unsigned int id, Vector2D<int> pos_diff);
-
-	void up_down(unsigned int id, int new_height);
-	void hide(unsigned int id);
+	Painter start_paint();
 
 private:
-	PixelWriter* writer_ = nullptr;
-	std::vector<std::unique_ptr<Layer>> layers_{};
-	std::vector<Layer*> layer_stack_{};
-	unsigned int latest_id_ = 0;
-
-	Layer* find_layer(unsigned int id);
+	FrameBuffer buffer_;
 };
 
-inline LayerManager* layer_manager;
+class GroupLayer final : public Layer {
+public:
+	GroupLayer(LayerManager& manager, unsigned int id, PixelFormat pixel_format, Vector2D<int> size);
+
+	Vector2D<int> size() const override;
+
+	void draw_to(FrameBuffer& dst) const override;
+	void draw_to(FrameBuffer& dst, Rect<int> damage) const override;
+
+	LayerManager& layer_manager();
+
+private:
+	LayerManager child_manager;
+	FrameBuffer buffer_;
+};

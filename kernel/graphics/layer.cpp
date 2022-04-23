@@ -3,97 +3,94 @@
 #include <algorithm>
 #include <memory>
 
-Layer::Layer(unsigned int id) : id_{id} {}
+Layer::Layer(LayerManager& manager, unsigned int id) : manager_(manager), id_{id} {}
 
 unsigned int Layer::id() const {
 	return id_;
 }
 
-Layer& Layer::set_window(const std::shared_ptr<Window>& window) {
-	window_ = window;
-	return *this;
+Vector2D<int> Layer::pos() const {
+	return pos_;
 }
 
-std::shared_ptr<Window> Layer::get_window() const {
-	return window_;
+void Layer::set_transparent_color(std::optional<PixelColor> c) {
+	transparent_color_ = c;
 }
 
-Layer& Layer::move(Vector2D<int> pos) {
+bool Layer::has_transparency() const {
+	return transparent_color_.has_value();
+}
+
+Rect<int> Layer::manager_area() const {
+	return Rect<int>(pos_, pos_ + size());
+}
+
+void Layer::move(Vector2D<int> pos) {
+	const auto before = manager_area();
 	pos_ = pos;
-	return *this;
+	const auto after = manager_area();
+	manager_.damage(id_, {before, after});
 }
 
-Layer& Layer::move_relative(Vector2D<int> pos_diff) {
-	pos_ += pos_diff;
-	return *this;
+void Layer::move_relative(Vector2D<int> pos_diff) {
+	move(pos_ + pos_diff);
 }
 
-void Layer::draw_to(PixelWriter& writer) const {
-	window_->draw_to(writer, pos_);
+void Layer::damage(const std::vector<Rect<int>>& rects) {
+	std::vector<Rect<int>> res;
+	std::transform(rects.cbegin(), rects.cend(), std::back_inserter(res), [this](auto x) { return x.offset(pos_); });
+	manager_.damage(id_, res);
+};
+
+BufferLayer::BufferLayer(LayerManager& manager, unsigned int id, PixelFormat pixel_format, Vector2D<int> size) :
+	Layer(manager, id), buffer_(FrameBufferConfig(size.x, size.y, pixel_format)) {}
+
+Vector2D<int> BufferLayer::size() const {
+	return buffer_.size();
 }
 
-void LayerManager::set_writer(PixelWriter* writer) {
-	writer_ = writer;
+void BufferLayer::draw_to(FrameBuffer& dst) const {
+	dst.copy_from(buffer_, pos_, transparent_color_);
 }
 
-Layer& LayerManager::new_layer() {
-	++latest_id_;
-	return *layers_.emplace_back(std::make_unique<Layer>(latest_id_));
-}
-
-Layer* LayerManager::find_layer(unsigned int id) {
-	const auto it = std::find_if(layers_.cbegin(), layers_.cend(), [id](const auto& elm) { return elm->id() == id; });
-	if (it == layers_.end()) {
-		return nullptr;
-	}
-	return it->get();
-}
-
-void LayerManager::move(unsigned int id, Vector2D<int> new_position) {
-	find_layer(id)->move(new_position);
-}
-
-void LayerManager::move_relative(unsigned int id, Vector2D<int> pos_diff) {
-	find_layer(id)->move_relative(pos_diff);
-}
-
-void LayerManager::draw() const {
-	for (const auto& layer : layer_stack_) {
-		layer->draw_to(*writer_);
-	}
-}
-
-void LayerManager::hide(unsigned int id) {
-	const auto layer = find_layer(id);
-	const auto pos = std::find(layer_stack_.cbegin(), layer_stack_.cend(), layer);
-	if (pos != layer_stack_.end()) {
-		layer_stack_.erase(pos);
-	}
-}
-
-void LayerManager::up_down(unsigned int id, int new_height) {
-	if (new_height < 0) {
-		hide(id);
+void BufferLayer::draw_to(FrameBuffer& dst, Rect<int> damage) const {
+	const auto layer_rect = manager_area();
+	if (!damage.is_crossing(layer_rect)) {
 		return;
 	}
 
-	if (new_height > layer_stack_.size()) {
-		new_height = layer_stack_.size();
-	}
+	const auto cross = damage.cross(layer_rect);
+	dst.copy_from(buffer_, cross.top_left(), cross.top_left() - pos_, cross.size(), transparent_color_);
+}
 
-	const auto layer = find_layer(id);
-	const auto old_pos = std::find(layer_stack_.cbegin(), layer_stack_.cend(), layer);
-	auto new_pos = layer_stack_.cbegin() + new_height;
+Painter BufferLayer::start_paint() {
+	return Painter(buffer_, *this);
+}
 
-	if (old_pos == layer_stack_.end()) {
-		layer_stack_.insert(new_pos, layer);
+GroupLayer::GroupLayer(LayerManager& manager, unsigned int id, PixelFormat pixel_format, Vector2D<int> size) :
+	Layer(manager, id), child_manager(pixel_format), buffer_(FrameBufferConfig(size.x, size.y, pixel_format)) {
+	child_manager.set_parent(this);
+	child_manager.set_buffer(&buffer_);
+}
+
+Vector2D<int> GroupLayer::size() const {
+	return buffer_.size();
+}
+
+void GroupLayer::draw_to(FrameBuffer& dst) const {
+	dst.copy_from(buffer_, pos_, transparent_color_);
+}
+
+void GroupLayer::draw_to(FrameBuffer& dst, Rect<int> damage) const {
+	const auto layer_rect = manager_area();
+	if (!damage.is_crossing(layer_rect)) {
 		return;
 	}
 
-	if (new_pos == layer_stack_.end()) {
-		--new_pos;
-	}
+	const auto cross = damage.cross(layer_rect);
+	dst.copy_from(buffer_, cross.top_left(), cross.top_left() - pos_, cross.size(), transparent_color_);
+}
 
-	layer_stack_.erase(old_pos);
-	layer_stack_.insert(new_pos, layer);
+LayerManager& GroupLayer::layer_manager() {
+	return child_manager;
 }

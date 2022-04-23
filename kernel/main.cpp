@@ -14,7 +14,6 @@
 #include "graphics/graphics.hpp"
 #include "graphics/layer.hpp"
 #include "graphics/mouse.hpp"
-#include "graphics/window.hpp"
 #include "interrupt.hpp"
 #include "logger.hpp"
 #include "memory_manager.hpp"
@@ -32,11 +31,6 @@ namespace {
 
 	void mouse_observer(int8_t dx, int8_t dy) {
 		layer_manager->move_relative(mouse_layer_id, {dx, dy});
-		start_lapic_timer();
-		layer_manager->draw();
-		const auto elapsed = lapic_timer_elapsed();
-		stop_lapic_timer();
-		printk("mouse_observer: elapsed = %u\n", elapsed);
 	}
 
 	struct Message {
@@ -62,6 +56,27 @@ extern "C" void
 kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const MemoryMap& memory_map_ref) {
 	auto frame_buffer_config = frame_buffer_config_ref;
 	auto memory_map = memory_map_ref;
+
+	char fb_pixel_writer_buf[max_device_pixel_writer_size];
+	get_suitable_device_pixel_writer_traits(frame_buffer_config.pixel_format)
+		.construct(frame_buffer_config, fb_pixel_writer_buf);
+	auto fb_pixel_writer = reinterpret_cast<DevicePixelWriter*>(fb_pixel_writer_buf);
+
+	const PixelColor desktop_fg_color{0xc8, 0xc8, 0xc6};
+	const PixelColor desktop_bg_color{0x1d, 0x1f, 0x21};
+
+	const int frame_width = frame_buffer_config.horizontal_resolution;
+	const int frame_height = frame_buffer_config.vertical_resolution;
+
+	Console console_instance(desktop_fg_color, desktop_bg_color);
+	global_console = &console_instance;
+
+	console_instance.set_pixel_writer(fb_pixel_writer);
+
+	auto console_logger = logger::ConsoleLogger(&console_instance, logger::LogLevel::Info);
+	auto logger_proxy = logger::LoggerProxy(console_logger);
+	kernel_interface::logger::default_logger = &console_logger;
+	log = &logger_proxy;
 
 	// セグメンテーションの設定
 	setup_segments();
@@ -101,25 +116,6 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 		memory_manager->set_memory_range(FrameID(1), FrameID(available_end / bytes_per_frame));
 	}
 
-	char pixel_writer_buf[sizeof(RGBResv8BitPerColorPixelWriter)];
-	PixelWriter* pixel_writer = reinterpret_cast<PixelWriter*>(pixel_writer_buf);
-
-	if (frame_buffer_config.pixel_format == PixelFormat::RGBResv8BitPerColor) {
-		new (pixel_writer_buf) RGBResv8BitPerColorPixelWriter(frame_buffer_config);
-	} else if (frame_buffer_config.pixel_format == PixelFormat::BGRResv8BitPerColor) {
-		new (pixel_writer_buf) BGRResv8BitPerColorPixelWriter(frame_buffer_config);
-	}
-
-	const PixelColor desktop_fg_color{0xc8, 0xc8, 0xc6};
-	const PixelColor desktop_bg_color{0x1d, 0x1f, 0x21};
-	Console console_instance(desktop_fg_color, desktop_bg_color);
-	global_console = &console_instance;
-
-	auto console_logger = logger::ConsoleLogger(console_instance, logger::LogLevel::Info);
-	auto logger_proxy = logger::LoggerProxy(console_logger);
-	kernel_interface::logger::default_logger = &console_logger;
-	log = &logger_proxy;
-
 	if (auto err = initialize_heap(*memory_manager)) {
 		log->error("Failed to allocate pages: %s\n", err.name());
 		halt();
@@ -131,30 +127,66 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 	ArrayQueue<Message> main_queue_instance(main_queue_buffer);
 	main_queue = &main_queue_instance;
 
-	const int frame_width = frame_buffer_config.horizontal_resolution;
-	const int frame_height = frame_buffer_config.vertical_resolution;
+	FrameBuffer screen(frame_buffer_config);
+	layer_manager = new LayerManager(frame_buffer_config.pixel_format);
 
-	auto bg_window = std::make_shared<Window>(frame_width, frame_height);
-	auto bg_window_writer = bg_window->writer();
+	auto bg_layer = layer_manager->new_layer<BufferLayer>(Vector2D<int>(frame_width, frame_width));
+	bg_layer->move({0, 0});
 
-	draw_filled_rectangle(*bg_window_writer, {0, 0}, {frame_width, frame_height - 50}, desktop_bg_color);
-	draw_filled_rectangle(*bg_window_writer, {0, frame_height - 50}, {frame_width, 50}, {1, 8, 17});
-	draw_filled_rectangle(*bg_window_writer, {0, frame_height - 50}, {frame_width / 5, 50}, {80, 80, 80});
-	draw_rectangle(*bg_window_writer, {10, frame_height - 40}, {30, 30}, {160, 160, 160});
+	{
+		auto painter = bg_layer->start_paint();
 
-	bg_window->draw_to(*pixel_writer, {0, 0});
-	global_console->set_pixel_writer(bg_window_writer);
+		painter.draw_filled_rectangle({{0, 0}, {frame_width, frame_height - 50}}, desktop_bg_color);
+		painter.draw_filled_rectangle({{0, frame_height - 50}, {frame_width, frame_height}}, {1, 8, 17});
+		painter.draw_filled_rectangle({{0, frame_height - 50}, {frame_width / 5, frame_height}}, {80, 80, 80});
+		painter.draw_rectangle({{10, frame_height - 40}, {40, frame_height - 10}}, {160, 160, 160});
 
-	layer_manager = new LayerManager();
-	layer_manager->set_writer(pixel_writer);
+		painter.draw_filled_rectangle({{500, 500}, {600, 600}}, {255, 0, 0});
+	}
 
-	const auto bg_layer_id = layer_manager->new_layer().set_window(bg_window).move({0, 0}).id();
+	auto console_layer = layer_manager->new_layer<BufferLayer>(Vector2D<int>(640, 400));
+	console_layer->move({200, 150});
 
-	mouse_layer_id = layer_manager->new_layer().set_window(make_mouse_window()).move({200, 200}).id();
+	auto fast_console = FastConsole(desktop_fg_color, {0, 0, 123}, *console_layer);
+	global_console = &fast_console;
+	console_logger.set_console(global_console);
 
-	layer_manager->up_down(bg_layer_id, 0);
-	layer_manager->up_down(mouse_layer_id, 1);
+	auto mouse_layer = make_mouse_layer(*layer_manager);
+	mouse_layer_id = mouse_layer->id();
+	mouse_layer->move({200, 200});
 
+	auto group_layer = layer_manager->new_layer<GroupLayer>(Vector2D<int>(500, 500));
+	group_layer->move({0, 0});
+
+	Layer* test_layer;
+
+	{
+		auto& group_manager = group_layer->layer_manager();
+
+		auto bg = group_manager.new_layer<BufferLayer>(Vector2D<int>(500, 500));
+		const auto tc = PixelColor({0x00, 0xff, 0x00});
+		group_layer->set_transparent_color(tc);
+		bg->start_paint().draw_filled_rectangle({0, 0, 500, 500}, tc);
+
+		auto test = group_manager.new_layer<BufferLayer>(Vector2D<int>(100, 100));
+		test_layer = test;
+		{
+			auto p = test->start_paint();
+			p.draw_filled_rectangle(Rect<int>::with_size({0, 0}, {100, 100}), {0xff, 0x00, 0xff});
+			p.draw_filled_rectangle(Rect<int>::with_size({30, 30}, {50, 50}), {0xff, 0xff, 0x00});
+		}
+		test->move({10, 10});
+
+		group_manager.up_down(bg->id(), 0);
+		group_manager.up_down(test->id(), 1);
+	}
+
+	layer_manager->up_down(bg_layer->id(), 0);
+	layer_manager->up_down(console_layer->id(), 1);
+	layer_manager->up_down(group_layer->id(), 2);
+	layer_manager->up_down(mouse_layer->id(), 3);
+
+	layer_manager->set_buffer(&screen);
 	layer_manager->draw();
 
 	printk(u8"chino chan kawaii!\n");
@@ -256,7 +288,12 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 		}
 	}
 
+	int c = 0;
+
 	while (true) {
+		++c;
+		test_layer->move({10, c % 100});
+
 		__asm__("cli");
 		if (main_queue->count() == 0) {
 			__asm__(
