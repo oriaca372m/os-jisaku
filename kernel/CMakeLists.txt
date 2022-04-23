@@ -35,12 +35,11 @@ target_include_directories(kernel.elf PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}/../stdlib/build/include/c++/v1"
 	"${CMAKE_CURRENT_SOURCE_DIR}/../stdlib/build/include"
 )
-target_include_directories(kernel.elf PRIVATE
-	"${CMAKE_CURRENT_SOURCE_DIR}"
-)
+target_include_directories(kernel.elf PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 target_compile_definitions(kernel.elf PUBLIC __ELF__ _LDBL_EQ_DBL _GNU_SOURCE _POSIX_TIMERS)
 
 set_property(TARGET kernel.elf PROPERTY CXX_STANDARD 17)
+set_property(TARGET kernel.elf PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 target_compile_options(kernel.elf
 	PUBLIC -O2
 	PUBLIC -Wall

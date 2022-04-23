@@ -26,6 +26,7 @@ target_include_directories(usb PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 target_compile_definitions(usb PUBLIC __ELF__ _LDBL_EQ_DBL _GNU_SOURCE _POSIX_TIMERS)
 
 set_property(TARGET usb PROPERTY CXX_STANDARD 17)
+set_property(TARGET kernel.elf PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 target_compile_options(usb
 	PUBLIC -O2
 	PUBLIC -Wall
