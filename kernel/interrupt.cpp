@@ -12,7 +12,7 @@ void set_idt_entry(
 	desc.segment_selector = segment_selector;
 }
 
-void notify_end_of_interrput() {
+__attribute__((no_caller_saved_registers)) void notify_end_of_interrput() {
 	volatile auto end_of_interrupt = reinterpret_cast<std::uint32_t*>(0xfee000b0);
 	*end_of_interrupt = 0;
 }

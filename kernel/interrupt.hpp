@@ -59,4 +59,4 @@ struct InterruptFrame {
 	std::uint64_t ss;
 };
 
-void notify_end_of_interrput();
+__attribute__((no_caller_saved_registers)) void notify_end_of_interrput();
