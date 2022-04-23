@@ -26,16 +26,9 @@ namespace {
 		to_pos = to_pos.max({0, 0});
 
 		// sizeがto/srcの大きさを超えないように
-		size = size.map(
-			[](int size, std::uint32_t to_size, int to_pos, std::uint32_t src_res, int src_size) {
-				const auto max_size =
-					std::min(static_cast<int>(to_size) - to_pos, static_cast<int>(src_res) - src_size);
-				return std::min(size, max_size);
-			},
-			to_size,
-			to_pos,
-			src_size,
-			src_pos);
+		const auto max_size =
+			(static_cast<Vector2D<int>>(to_size) - to_pos).min(static_cast<Vector2D<int>>(src_size) - src_pos);
+		size = size.min(max_size);
 	}
 
 	void copy_transparent(
