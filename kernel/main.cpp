@@ -32,7 +32,8 @@ namespace {
 	Vector2D<int> screen_size;
 	Vector2D<int> mouse_position = {0, 0};
 
-	void mouse_observer(int8_t dx, int8_t dy) {
+	void mouse_observer(std::uint8_t buttons, std::int8_t dx, std::int8_t dy) {
+		printk("buttons %0xu\n", buttons);
 		const auto new_pos = mouse_position + Vector2D<int>(dx, dy);
 		mouse_position = new_pos.max({0, 0}).min(screen_size - Vector2D<int>(1, 1));
 		layer_manager->move(mouse_layer_id, mouse_position);
