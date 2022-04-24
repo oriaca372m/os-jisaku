@@ -134,7 +134,7 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 	main_queue = &main_queue_instance;
 
 	FrameBuffer screen(frame_buffer_config);
-	layer_manager = new LayerManager(frame_buffer_config.pixel_format);
+	layer_manager = new DoubleBufferedLayerManager(frame_buffer_config.pixel_format);
 
 	auto bg_layer = layer_manager->new_layer<BufferLayer>(Vector2D<int>(frame_width, frame_width));
 	bg_layer->move({0, 0});
@@ -318,9 +318,9 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 
 		__asm__("cli");
 		if (main_queue->count() == 0) {
-			__asm__(
-				"sti;"
-				"hlt;");
+			__asm__("sti;"
+					//"hlt;"
+			);
 			continue;
 		}
 

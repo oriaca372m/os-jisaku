@@ -22,6 +22,9 @@ public:
 		return *writer_;
 	}
 
+	// バッファを完全にコピーする
+	void forward(const FrameBuffer& src);
+
 	void copy_self_y(int dst_y, int src_y, int src_end_y);
 
 	Error copy_from(const FrameBuffer& src, Vector2D<int> to_pos, std::optional<PixelColor> transparent_color);
@@ -32,6 +35,8 @@ public:
 		Vector2D<int> size,
 		std::optional<PixelColor> transparent_color);
 
+	FrameBuffer clone() const;
+
 private:
 	FrameBufferConfig config_;
 	std::vector<std::uint8_t> buffer_{};
@@ -39,6 +44,12 @@ private:
 
 	const DevicePixelWriterTraits* writer_traits_;
 
+	FrameBuffer(
+		FrameBufferConfig&& config,
+		std::vector<std::uint8_t>&& buffer,
+		const DevicePixelWriterTraits* writer_traits);
+
+	std::size_t buffer_size() const;
 	std::size_t bytes_per_scan_line() const;
 	std::uint8_t* frame_addr_at(Vector2D<int> pos) const;
 };

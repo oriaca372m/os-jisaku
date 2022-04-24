@@ -91,12 +91,11 @@ namespace {
 
 FrameBuffer::FrameBuffer(const FrameBufferConfig& config) : config_(config) {
 	writer_traits_ = &get_suitable_device_pixel_writer_traits(config_.pixel_format);
-	const auto bpp = writer_traits_->bytes_per_pixel;
 
 	if (config_.frame_buffer == nullptr) {
-		buffer_.resize(bpp * config_.horizontal_resolution * config_.vertical_resolution);
-		config_.frame_buffer = buffer_.data();
 		config_.pixels_per_scan_line = config_.horizontal_resolution;
+		buffer_.resize(buffer_size());
+		config_.frame_buffer = buffer_.data();
 	}
 
 	writer_ = writer_traits_->construct(config_);
@@ -104,6 +103,10 @@ FrameBuffer::FrameBuffer(const FrameBufferConfig& config) : config_(config) {
 
 Vector2D<int> FrameBuffer::size() const {
 	return {static_cast<int>(config_.horizontal_resolution), static_cast<int>(config_.vertical_resolution)};
+}
+
+void FrameBuffer::forward(const FrameBuffer& src) {
+	std::memcpy(config_.frame_buffer, src.config_.frame_buffer, buffer_size());
 }
 
 void FrameBuffer::copy_self_y(int dst_y, int src_y, int length) {
@@ -161,6 +164,33 @@ Error FrameBuffer::copy_from(
 	}
 
 	return Error::Code::Success;
+}
+
+FrameBuffer::FrameBuffer(
+	FrameBufferConfig&& config,
+	std::vector<std::uint8_t>&& buffer,
+	const DevicePixelWriterTraits* writer_traits) :
+	config_(std::move(config)), buffer_(std::move(buffer)), writer_traits_(writer_traits) {
+	config_.frame_buffer = buffer_.data();
+	writer_ = writer_traits_->construct(config_);
+}
+
+FrameBuffer FrameBuffer::clone() const {
+	auto new_config = config_;
+	std::vector<std::uint8_t> new_buffer;
+
+	if (!buffer_.empty() && config_.frame_buffer == buffer_.data()) {
+		new_buffer = buffer_;
+	} else {
+		const std::size_t size = buffer_size();
+		new_buffer.resize(size);
+		std::memcpy(new_buffer.data(), config_.frame_buffer, size);
+	}
+	return FrameBuffer(std::move(new_config), std::move(new_buffer), writer_traits_);
+}
+
+std::size_t FrameBuffer::buffer_size() const {
+	return writer_traits_->bytes_per_pixel * config_.pixels_per_scan_line * config_.vertical_resolution;
 }
 
 std::size_t FrameBuffer::bytes_per_scan_line() const {

@@ -8,11 +8,11 @@
 
 class Layer;
 
-class LayerManager final {
+class LayerManager {
 public:
 	LayerManager(PixelFormat pixel_format);
 
-	void set_buffer(FrameBuffer* buffer);
+	virtual void set_buffer(FrameBuffer* buffer);
 	void set_parent(Layer* parent);
 
 	template <typename T, typename... Args>
@@ -24,7 +24,7 @@ public:
 		return layer_raw_ptr;
 	}
 
-	void draw() const;
+	virtual void draw() const;
 
 	void move(unsigned int id, Vector2D<int> new_position);
 	void move_relative(unsigned int id, Vector2D<int> pos_diff);
@@ -34,20 +34,40 @@ public:
 
 	// layer_idを持つ属するLayerのコンテンツの範囲rectsが更新された時呼ばれる
 	// rectsはこのLayerManagerの座標空間
-	void damage(unsigned int layer_id, const std::vector<Rect<int>>& rects);
+	virtual void damage(unsigned int layer_id, const std::vector<Rect<int>>& rects) const;
+
+protected:
+	FrameBuffer* buffer_ = nullptr;
+	Layer* parent_ = nullptr;
+	std::vector<Layer*> layer_stack_{};
+
+	void draw_to(FrameBuffer& buffer) const;
+	void draw_damage_to(FrameBuffer& buffer, unsigned int layer_id, const Rect<int>& rects) const;
+	Rect<int> merge_rects(const std::vector<Rect<int>>& rects) const;
 
 private:
 	const PixelFormat pixel_format_;
-	FrameBuffer* buffer_ = nullptr;
-	Layer* parent_ = nullptr;
 
 	std::vector<std::unique_ptr<Layer>> layers_{};
-	std::vector<Layer*> layer_stack_{};
 	unsigned int latest_id_ = 0;
 
 	Layer* find_layer(unsigned int id);
 	decltype(layer_stack_)::iterator find_layer_stack_itr(unsigned int id);
 	decltype(layer_stack_)::iterator find_layer_stack_itr(unsigned int id, decltype(layer_stack_)::iterator begin);
+	decltype(layer_stack_)::const_iterator
+	find_layer_stack_itr(unsigned int id, decltype(layer_stack_)::const_iterator begin) const;
+};
+
+class DoubleBufferedLayerManager final : public LayerManager {
+	using LayerManager::LayerManager;
+
+	void set_buffer(FrameBuffer* buffer) override;
+
+	void draw() const override;
+	void damage(unsigned int layer_id, const std::vector<Rect<int>>& rects) const override;
+
+private:
+	mutable std::optional<FrameBuffer> back_buffer_;
 };
 
 inline LayerManager* layer_manager = nullptr;
