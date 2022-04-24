@@ -25,6 +25,7 @@
 #include "segment.hpp"
 #include "timer.hpp"
 #include "utils.hpp"
+#include "window.hpp"
 
 namespace {
 	unsigned int mouse_layer_id;
@@ -163,6 +164,15 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 	auto group_layer = layer_manager->new_layer<GroupLayer>(Vector2D<int>(500, 500));
 	group_layer->move({0, 0});
 
+	auto main_window_layer = layer_manager->new_layer<BufferLayer>(Vector2D<int>(160, 68));
+	{
+		auto painter = main_window_layer->start_paint();
+		draw_window(painter, u8"Hello Window");
+		painter.draw_string({24, 28}, u8"Chino-chan", {0, 0, 0});
+		painter.draw_string({24, 44}, u8" Kawaii!", {0, 0, 0});
+	}
+	main_window_layer->move({300, 300});
+
 	Layer* test_layer;
 
 	{
@@ -189,7 +199,8 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 	layer_manager->up_down(bg_layer->id(), 0);
 	layer_manager->up_down(console_layer->id(), 1);
 	layer_manager->up_down(group_layer->id(), 2);
-	layer_manager->up_down(mouse_layer->id(), 3);
+	layer_manager->up_down(main_window_layer->id(), 3);
+	layer_manager->up_down(mouse_layer->id(), 4);
 
 	layer_manager->set_buffer(&screen);
 	layer_manager->draw();

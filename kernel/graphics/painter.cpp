@@ -16,6 +16,10 @@ void Painter::end() {
 	layer_.damage({{damage_top_left_, damage_bottom_right_}});
 }
 
+Vector2D<int> Painter::size() const {
+	return layer_.size();
+}
+
 void Painter::copy_y(int dst_y, int src_y, int src_end_y) {
 	const auto height = src_end_y - src_y;
 	buffer_.copy_self_y(dst_y, src_y, height);
@@ -35,6 +39,16 @@ void Painter::draw_filled_rectangle(const Rect<int>& rect, const PixelColor& c) 
 void Painter::draw_ascii(const Vector2D<int>& pos, char ch, const PixelColor& c) {
 	write_ascii(raw_pixel_writer(), pos.x, pos.y, ch, c);
 	raw_damage(Rect<int>::with_size(pos, {8, 16}));
+}
+
+void Painter::draw_string(const Vector2D<int>& pos, const char* str, const PixelColor& c) {
+	auto& pixel_writer = raw_pixel_writer();
+
+	int i = 0;
+	for (; str[i] != u8'\0'; ++i) {
+		write_ascii(pixel_writer, pos.x + i * 8, pos.y, str[i], c);
+	}
+	raw_damage(Rect<int>::with_size(pos, {i * 8, 16}));
 }
 
 PixelWriter& Painter::pixel_writer() {

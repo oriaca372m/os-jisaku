@@ -20,6 +20,7 @@ add_executable(kernel.elf
 	memory_manager.cpp
 	sbrk.cpp
 	timer.cpp
+	window.cpp
 	graphics/graphics.cpp
 	graphics/font.cpp
 	graphics/console.cpp
