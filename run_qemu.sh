@@ -32,7 +32,8 @@ sudo umount mnt
 
 qemu-system-x86_64 \
 	-monitor stdio \
-	-m 1G \
+	-enable-kvm \
+	-m 2G \
 	-device nec-usb-xhci,id=xhci \
 	-device usb-mouse \
 	-device usb-kbd \
