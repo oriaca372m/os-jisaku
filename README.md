@@ -14,6 +14,7 @@
 - cmake
 - ninja
 - docker
+- python
 - 抜けがあるかも
 
 ## EDK2のインストール
@@ -21,9 +22,8 @@
 # このリポジトリ外の適当なディレクトリで
 $ git clone 'https://github.com/tianocore/edk2'
 $ cd edk2
-$ git switch --detach edk2-stable202105
+$ git switch --detach edk2-stable202202
 $ git submodule update --init
-$ (cd BaseTools/Source/C/BrotliCompress/brotli && git apply このリポジトリのルート/brotli_warning_fix.patch)
 $ make -C BaseTools
 ```
 
