@@ -20,7 +20,7 @@ namespace {
 		src_pos = src_pos.max({0, 0});
 
 		// to_posが負の時の座標調整
-		// to_posが負ならその分sizeを縮め、to_posを増やし、to_posを0にする
+		// to_posが負ならその分sizeを縮め、src_posを増やし、to_posを0にする
 		size = size.map(decrease_d, to_pos);
 		src_pos = src_pos.map(increase_d, to_pos);
 		to_pos = to_pos.max({0, 0});
