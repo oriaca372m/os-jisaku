@@ -56,10 +56,11 @@ target_compile_options(kernel.elf
 set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/linker.ld")
 set_target_properties(kernel.elf PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})
 target_link_options(kernel.elf
-	PUBLIC --entry KernelMain
-	PUBLIC -z norelro
+	PUBLIC --entry=kernel_main
+	PUBLIC "SHELL:-z norelro"
+	PUBLIC "SHELL:-z stack-size=0x100000"
 	PUBLIC --static
-	PUBLIC -T ${LINKER_SCRIPT}
+	PUBLIC --script=${LINKER_SCRIPT}
 )
 
 add_custom_command(

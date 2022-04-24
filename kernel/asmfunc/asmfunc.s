@@ -84,8 +84,3 @@ set_cs_ss_next:
 set_cr3:
 	mov %rdi, %cr3
 	ret
-
-.global KernelMain
-KernelMain:
-	mov $kernel_main_stack + 1024 * 1024, %rsp
-	jmp kernel_main_new_stack

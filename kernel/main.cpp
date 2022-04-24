@@ -82,10 +82,7 @@ namespace {
 	BitmapMemoryManager* memory_manager = reinterpret_cast<BitmapMemoryManager*>(&memory_manager_buf);
 }
 
-alignas(16) std::uint8_t kernel_main_stack[1024 * 1024];
-
-extern "C" void
-kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const MemoryMap& memory_map_ref) {
+extern "C" void kernel_main(const FrameBufferConfig& frame_buffer_config_ref, const MemoryMap& memory_map_ref) {
 	auto frame_buffer_config = frame_buffer_config_ref;
 	auto memory_map = memory_map_ref;
 
