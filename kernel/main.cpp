@@ -168,8 +168,7 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 	{
 		auto painter = main_window_layer->start_paint();
 		draw_window(painter, u8"Hello Window");
-		painter.draw_string({24, 28}, u8"Chino-chan", {0, 0, 0});
-		painter.draw_string({24, 44}, u8" Kawaii!", {0, 0, 0});
+		painter.draw_string({8, 44}, u8"Chino-chan Kawaii!", {0, 0, 0});
 	}
 	main_window_layer->move({300, 300});
 
@@ -305,9 +304,16 @@ kernel_main_new_stack(const FrameBufferConfig& frame_buffer_config_ref, const Me
 	}
 
 	int c = 0;
+	char str[128];
 
 	while (true) {
 		++c;
+		std::snprintf(str, sizeof(str), u8"%010u", c);
+		{
+			auto painter = main_window_layer->start_paint();
+			painter.draw_filled_rectangle(Rect<int>::with_size({24, 28}, {8 * 10, 16}), {0xc6c6c6});
+			painter.draw_string({24, 28}, str, {0x000000});
+		}
 		test_layer->move({10, c % 100});
 
 		__asm__("cli");
