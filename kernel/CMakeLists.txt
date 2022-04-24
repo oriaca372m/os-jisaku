@@ -41,26 +41,26 @@ target_compile_definitions(kernel.elf PUBLIC __ELF__ _LDBL_EQ_DBL _GNU_SOURCE _P
 
 set_property(TARGET kernel.elf PROPERTY CXX_STANDARD 17)
 set_property(TARGET kernel.elf PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-target_compile_options(kernel.elf
-	PUBLIC -O2
-	PUBLIC -Wall
-	PUBLIC -g
-	PUBLIC --target=x86_64-elf
-	PUBLIC -ffreestanding
-	PUBLIC -mno-red-zone
-	PUBLIC -fno-exceptions
-	PUBLIC -fno-rtti
-	PUBLIC -nostdlibinc
+target_compile_options(kernel.elf PUBLIC
+	-O2
+	-Wall
+	-g
+	--target=x86_64-elf
+	-ffreestanding
+	-mno-red-zone
+	-fno-exceptions
+	-fno-rtti
+	-nostdlibinc
 )
 
 set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/linker.ld")
 set_target_properties(kernel.elf PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})
-target_link_options(kernel.elf
-	PUBLIC --entry=kernel_main
-	PUBLIC "SHELL:-z norelro"
-	PUBLIC "SHELL:-z stack-size=0x100000"
-	PUBLIC --static
-	PUBLIC --script=${LINKER_SCRIPT}
+target_link_options(kernel.elf PUBLIC
+	--entry=kernel_main
+	"SHELL:-z norelro"
+	"SHELL:-z stack-size=0x100000"
+	--static
+	--script=${LINKER_SCRIPT}
 )
 
 add_custom_command(

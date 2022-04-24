@@ -27,21 +27,18 @@ target_compile_definitions(usb PUBLIC __ELF__ _LDBL_EQ_DBL _GNU_SOURCE _POSIX_TI
 
 set_property(TARGET usb PROPERTY CXX_STANDARD 17)
 set_property(TARGET kernel.elf PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-target_compile_options(usb
-	PUBLIC -O2
-	PUBLIC -Wall
-	PUBLIC -g
-	PUBLIC --target=x86_64-elf
-	PUBLIC -ffreestanding
-	PUBLIC -mno-red-zone
-	PUBLIC -fno-exceptions
-	PUBLIC -fno-rtti
-	PUBLIC -nostdlibinc
+target_compile_options(usb PUBLIC
+	-O2
+	-Wall
+	-g
+	--target=x86_64-elf
+	-ffreestanding
+	-mno-red-zone
+	-fno-exceptions
+	-fno-rtti
+	-nostdlibinc
 )
 
-set_target_properties(usb PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})
-target_link_options(usb
-	PUBLIC -z norelro
-)
+target_link_options(usb PUBLIC "SHELL:-z norelro")
 
 target_link_libraries(usb PRIVATE kernel_interface)
