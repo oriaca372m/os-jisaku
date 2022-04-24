@@ -32,6 +32,8 @@ public:
 	void up_down(unsigned int id, int new_height);
 	void hide(unsigned int id);
 
+	Layer* find_layer_by_position(Vector2D<int> pos, unsigned int exclude_id) const;
+
 	// layer_idを持つ属するLayerのコンテンツの範囲rectsが更新された時呼ばれる
 	// rectsはこのLayerManagerの座標空間
 	virtual void damage(unsigned int layer_id, const std::vector<Rect<int>>& rects) const;

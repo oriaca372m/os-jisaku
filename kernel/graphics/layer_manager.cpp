@@ -20,6 +20,21 @@ Layer* LayerManager::find_layer(unsigned int id) {
 	return it->get();
 }
 
+Layer* LayerManager::find_layer_by_position(Vector2D<int> pos, unsigned int exclude_id) const {
+	auto it = std::find_if(layer_stack_.crbegin(), layer_stack_.crend(), [pos, exclude_id](Layer* layer) {
+		if (layer->id() == exclude_id) {
+			return false;
+		}
+
+		return layer->manager_area().includes(pos);
+	});
+
+	if (it == layer_stack_.crend()) {
+		return nullptr;
+	}
+	return *it;
+}
+
 decltype(LayerManager::layer_stack_)::iterator LayerManager::find_layer_stack_itr(unsigned int id) {
 	return find_layer_stack_itr(id, layer_stack_.begin());
 }

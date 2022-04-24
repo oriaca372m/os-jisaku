@@ -30,13 +30,39 @@
 namespace {
 	unsigned int mouse_layer_id;
 	Vector2D<int> screen_size;
-	Vector2D<int> mouse_position = {0, 0};
 
 	void mouse_observer(std::uint8_t buttons, std::int8_t dx, std::int8_t dy) {
-		printk("buttons %0xu\n", buttons);
+		static unsigned int mouse_drag_layer_id = 0;
+		static std::uint8_t previous_buttons = 0;
+		static Vector2D<int> mouse_position = {0, 0};
+
+		const auto old_pos = mouse_position;
 		const auto new_pos = mouse_position + Vector2D<int>(dx, dy);
 		mouse_position = new_pos.max({0, 0}).min(screen_size - Vector2D<int>(1, 1));
 		layer_manager->move(mouse_layer_id, mouse_position);
+
+		const auto pos_diff = mouse_position - old_pos;
+
+		const bool is_previous_left_pressed = previous_buttons & 0x01;
+		const bool is_left_pressed = buttons & 0x01;
+
+		if (!is_previous_left_pressed && is_left_pressed) {
+			// ドラッグを始めた瞬間
+			auto layer = layer_manager->find_layer_by_position(mouse_position, mouse_layer_id);
+			if (layer != nullptr) {
+				mouse_drag_layer_id = layer->id();
+			}
+		} else if (is_previous_left_pressed && is_left_pressed) {
+			// ドラッグ中
+			if (mouse_drag_layer_id > 0) {
+				layer_manager->move_relative(mouse_drag_layer_id, pos_diff);
+			}
+		} else if (is_previous_left_pressed && !is_left_pressed) {
+			// ドラッグを終えた瞬間
+			mouse_drag_layer_id = 0;
+		}
+
+		previous_buttons = buttons;
 	}
 
 	struct Message {

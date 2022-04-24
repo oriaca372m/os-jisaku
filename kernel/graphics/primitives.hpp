@@ -99,4 +99,8 @@ struct Rect final {
 	constexpr bool includes(const Rect<T>& other) const {
 		return left <= other.left && top <= other.top && other.right <= right && other.bottom <= bottom;
 	}
+
+	constexpr bool includes(Vector2D<T> p) const {
+		return left <= p.x && top <= p.y && p.x < right && p.y < bottom;
+	}
 };
