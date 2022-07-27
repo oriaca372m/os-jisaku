@@ -4,6 +4,8 @@
 #include "font.hpp"
 #include "layer.hpp"
 
+using graphics::Console;
+
 Console::Console(const PixelColor& fg_color, const PixelColor& bg_color) :
 	fg_color_(fg_color), bg_color_(bg_color), buffer_{}, cursor_row_(0), cursor_column_(0) {}
 
@@ -70,6 +72,8 @@ void Console::draw_char_at(int x, int y, char c) {
 
 	write_ascii(*writer_, x * 8, y * 16, c, fg_color_);
 }
+
+using graphics::FastConsole;
 
 FastConsole::FastConsole(const PixelColor& fg_color, const PixelColor& bg_color, BufferLayer& layer) :
 	layer_(layer), fg_color_(fg_color), bg_color_(bg_color), cursor_row_(0), cursor_column_(0) {

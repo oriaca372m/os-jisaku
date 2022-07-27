@@ -9,7 +9,7 @@
 #include "utils.hpp"
 #include "window.hpp"
 
-void draw_filled_rectangle(
+void graphics::draw_filled_rectangle(
 	PixelWriter& writer,
 	const Vector2D<int>& pos,
 	const Vector2D<int>& size,
@@ -21,7 +21,11 @@ void draw_filled_rectangle(
 	}
 }
 
-void draw_rectangle(PixelWriter& writer, const Vector2D<int>& pos, const Vector2D<int>& size, const PixelColor& c) {
+void graphics::draw_rectangle(
+	PixelWriter& writer,
+	const Vector2D<int>& pos,
+	const Vector2D<int>& size,
+	const PixelColor& c) {
 	for (int dx = 0; dx < size.x; ++dx) {
 		writer.write(pos.x + dx, pos.y, c);
 		writer.write(pos.x + dx, pos.y + size.y - 1, c);
@@ -33,7 +37,9 @@ void draw_rectangle(PixelWriter& writer, const Vector2D<int>& pos, const Vector2
 	}
 }
 
-void initialize_graphics(const FrameBufferConfig& frame_buffer_config, logger::ConsoleLogger& console_logger) {
+void graphics::initialize_graphics(
+	const FrameBufferConfig& frame_buffer_config,
+	logger::ConsoleLogger& console_logger) {
 	layer_manager = new DoubleBufferedLayerManager(frame_buffer_config.pixel_format);
 
 	auto bg_layer = layer_manager->new_layer<BufferLayer>(screen_size);

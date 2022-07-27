@@ -29,13 +29,17 @@
 
 namespace {
 	void mouse_observer(std::uint8_t buttons, std::int8_t dx, std::int8_t dy) {
+		using graphics::layer_manager;
+		using graphics::mouse_layer_id;
+		using graphics::Vector2D;
+
 		static unsigned int mouse_drag_layer_id = 0;
 		static std::uint8_t previous_buttons = 0;
 		static Vector2D<int> mouse_position = {0, 0};
 
 		const auto old_pos = mouse_position;
 		const auto new_pos = mouse_position + Vector2D<int>(dx, dy);
-		mouse_position = new_pos.max({0, 0}).min(screen_size - Vector2D<int>(1, 1));
+		mouse_position = new_pos.max({0, 0}).min(graphics::screen_size - Vector2D<int>(1, 1));
 		layer_manager->move(mouse_layer_id, mouse_position);
 
 		const auto pos_diff = mouse_position - old_pos;
@@ -78,11 +82,12 @@ namespace {
 	alignas(BitmapMemoryManager) std::uint8_t memory_manager_buf[sizeof(BitmapMemoryManager)];
 	BitmapMemoryManager* memory_manager = reinterpret_cast<BitmapMemoryManager*>(&memory_manager_buf);
 
-	alignas(std::max_align_t) char fb_pixel_writer_buf[max_device_pixel_writer_size];
-	DevicePixelWriter* fb_pixel_writer = reinterpret_cast<DevicePixelWriter*>(fb_pixel_writer_buf);
+	alignas(std::max_align_t) char fb_pixel_writer_buf[graphics::max_device_pixel_writer_size];
+	graphics::DevicePixelWriter* fb_pixel_writer = reinterpret_cast<graphics::DevicePixelWriter*>(fb_pixel_writer_buf);
 }
 
-extern "C" void kernel_main(const FrameBufferConfig& frame_buffer_config_ref, const MemoryMap& memory_map_ref) {
+extern "C" void
+kernel_main(const graphics::FrameBufferConfig& frame_buffer_config_ref, const MemoryMap& memory_map_ref) {
 	auto frame_buffer_config = frame_buffer_config_ref;
 	auto memory_map = memory_map_ref;
 
@@ -91,10 +96,10 @@ extern "C" void kernel_main(const FrameBufferConfig& frame_buffer_config_ref, co
 
 	const int frame_width = frame_buffer_config.horizontal_resolution;
 	const int frame_height = frame_buffer_config.vertical_resolution;
-	screen_size = {frame_width, frame_height};
+	graphics::screen_size = {frame_width, frame_height};
 
-	Console console_instance(desktop_fg_color, desktop_bg_color);
-	global_console = &console_instance;
+	graphics::Console console_instance(graphics::desktop_fg_color, graphics::desktop_bg_color);
+	graphics::global_console = &console_instance;
 
 	console_instance.set_pixel_writer(fb_pixel_writer);
 
@@ -200,16 +205,18 @@ extern "C" void kernel_main(const FrameBufferConfig& frame_buffer_config_ref, co
 	int c = 0;
 	char str[128];
 
-	auto main_window_layer = static_cast<BufferLayer*>(layer_manager->find_layer(main_window_layer_id));
-	auto group_layer = static_cast<GroupLayer*>(layer_manager->find_layer(group_layer_id));
-	auto test_layer = group_layer->layer_manager().find_layer(test_layer_id);
+	auto main_window_layer =
+		static_cast<graphics::BufferLayer*>(graphics::layer_manager->find_layer(graphics::main_window_layer_id));
+	auto group_layer =
+		static_cast<graphics::GroupLayer*>(graphics::layer_manager->find_layer(graphics::group_layer_id));
+	auto test_layer = group_layer->layer_manager().find_layer(graphics::test_layer_id);
 
 	while (true) {
 		++c;
 		std::snprintf(str, sizeof(str), u8"%010u", c);
 		{
 			auto painter = main_window_layer->start_paint();
-			painter.draw_filled_rectangle(Rect<int>::with_size({24, 28}, {8 * 10, 16}), {0xc6c6c6});
+			painter.draw_filled_rectangle(graphics::Rect<int>::with_size({24, 28}, {8 * 10, 16}), {0xc6c6c6});
 			painter.draw_string({24, 28}, str, {0x000000});
 		}
 		test_layer->move({10, c % 100});

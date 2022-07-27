@@ -1,5 +1,9 @@
 #include "mouse.hpp"
 
+using graphics::BufferLayer;
+using graphics::PixelWriter;
+using graphics::Vector2D;
+
 namespace {
 	const int mouse_cursor_width = 15;
 	const int mouse_cursor_height = 24;
@@ -46,7 +50,7 @@ namespace {
 	}
 }
 
-BufferLayer* make_mouse_layer(LayerManager& manager) {
+BufferLayer* graphics::make_mouse_layer(LayerManager& manager) {
 	auto layer = manager.new_layer<BufferLayer>(Vector2D<int>(mouse_cursor_width, mouse_cursor_height));
 	layer->set_transparent_color(PixelColor{0xff, 0x00, 0x00});
 	draw_mouse_cursor(layer->start_paint().pixel_writer(), {0, 0});

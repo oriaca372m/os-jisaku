@@ -7,69 +7,71 @@
 #include "layer_manager.hpp"
 #include "painter.hpp"
 
-class Layer {
-public:
-	Layer(LayerManager& manager, unsigned int id);
-	virtual ~Layer() = default;
+namespace graphics {
+	class Layer {
+	public:
+		Layer(LayerManager& manager, unsigned int id);
+		virtual ~Layer() = default;
 
-	unsigned int id() const;
-	virtual Vector2D<int> pos() const;
-	virtual Vector2D<int> size() const = 0;
+		unsigned int id() const;
+		virtual Vector2D<int> pos() const;
+		virtual Vector2D<int> size() const = 0;
 
-	void set_transparent_color(std::optional<PixelColor> c);
-	bool has_transparency() const;
+		void set_transparent_color(std::optional<PixelColor> c);
+		bool has_transparency() const;
 
-	void move(Vector2D<int> pos);
-	void move_relative(Vector2D<int> pos_diff);
+		void move(Vector2D<int> pos);
+		void move_relative(Vector2D<int> pos_diff);
 
-	virtual void draw_to(FrameBuffer& dst) const = 0;
-	virtual void draw_to(FrameBuffer& dst, Rect<int> damage) const = 0;
+		virtual void draw_to(FrameBuffer& dst) const = 0;
+		virtual void draw_to(FrameBuffer& dst, Rect<int> damage) const = 0;
 
-	// このLayerのコンテンツの範囲rectsが更新された時呼ばれる
-	// rectsはこのLayerの座標空間
-	void damage(const std::vector<Rect<int>>& rects);
+		// このLayerのコンテンツの範囲rectsが更新された時呼ばれる
+		// rectsはこのLayerの座標空間
+		void damage(const std::vector<Rect<int>>& rects);
 
-	// 属しているLayerManagerの座標空間でこのLayerが表示される領域
-	Rect<int> manager_area() const;
+		// 属しているLayerManagerの座標空間でこのLayerが表示される領域
+		Rect<int> manager_area() const;
 
-	void set_draggable(bool draggable);
-	bool is_draggable() const;
+		void set_draggable(bool draggable);
+		bool is_draggable() const;
 
-protected:
-	LayerManager& manager_;
-	const unsigned int id_;
-	Vector2D<int> pos_ = {0, 0};
-	std::optional<PixelColor> transparent_color_;
-	bool draggable_ = false;
-};
+	protected:
+		LayerManager& manager_;
+		const unsigned int id_;
+		Vector2D<int> pos_ = {0, 0};
+		std::optional<PixelColor> transparent_color_;
+		bool draggable_ = false;
+	};
 
-class BufferLayer final : public Layer {
-public:
-	BufferLayer(LayerManager& manager, unsigned int id, PixelFormat pixel_format, Vector2D<int> size);
+	class BufferLayer final : public Layer {
+	public:
+		BufferLayer(LayerManager& manager, unsigned int id, PixelFormat pixel_format, Vector2D<int> size);
 
-	Vector2D<int> size() const override;
+		Vector2D<int> size() const override;
 
-	void draw_to(FrameBuffer& dst) const override;
-	void draw_to(FrameBuffer& dst, Rect<int> damage) const override;
+		void draw_to(FrameBuffer& dst) const override;
+		void draw_to(FrameBuffer& dst, Rect<int> damage) const override;
 
-	Painter start_paint();
+		Painter start_paint();
 
-private:
-	FrameBuffer buffer_;
-};
+	private:
+		FrameBuffer buffer_;
+	};
 
-class GroupLayer final : public Layer {
-public:
-	GroupLayer(LayerManager& manager, unsigned int id, PixelFormat pixel_format, Vector2D<int> size);
+	class GroupLayer final : public Layer {
+	public:
+		GroupLayer(LayerManager& manager, unsigned int id, PixelFormat pixel_format, Vector2D<int> size);
 
-	Vector2D<int> size() const override;
+		Vector2D<int> size() const override;
 
-	void draw_to(FrameBuffer& dst) const override;
-	void draw_to(FrameBuffer& dst, Rect<int> damage) const override;
+		void draw_to(FrameBuffer& dst) const override;
+		void draw_to(FrameBuffer& dst, Rect<int> damage) const override;
 
-	LayerManager& layer_manager();
+		LayerManager& layer_manager();
 
-private:
-	LayerManager child_manager;
-	FrameBuffer buffer_;
-};
+	private:
+		LayerManager child_manager;
+		FrameBuffer buffer_;
+	};
+}

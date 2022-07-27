@@ -2,4 +2,4 @@
 
 #include "graphics/painter.hpp"
 
-void draw_window(Painter& painter, const char* title);
+void draw_window(graphics::Painter& painter, const char* title);

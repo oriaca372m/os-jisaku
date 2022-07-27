@@ -3,6 +3,13 @@
 #include <algorithm>
 #include <memory>
 
+using graphics::LayerManager;
+using graphics::Painter;
+using graphics::Rect;
+using graphics::Vector2D;
+
+using graphics::Layer;
+
 Layer::Layer(LayerManager& manager, unsigned int id) : manager_(manager), id_{id} {}
 
 unsigned int Layer::id() const {
@@ -49,6 +56,8 @@ bool Layer::is_draggable() const {
 	return draggable_;
 }
 
+using graphics::BufferLayer;
+
 BufferLayer::BufferLayer(LayerManager& manager, unsigned int id, PixelFormat pixel_format, Vector2D<int> size) :
 	Layer(manager, id), buffer_(FrameBufferConfig(size.x, size.y, pixel_format)) {}
 
@@ -73,6 +82,8 @@ void BufferLayer::draw_to(FrameBuffer& dst, Rect<int> damage) const {
 Painter BufferLayer::start_paint() {
 	return Painter(buffer_, *this);
 }
+
+using graphics::GroupLayer;
 
 GroupLayer::GroupLayer(LayerManager& manager, unsigned int id, PixelFormat pixel_format, Vector2D<int> size) :
 	Layer(manager, id), child_manager(pixel_format), buffer_(FrameBufferConfig(size.x, size.y, pixel_format)) {

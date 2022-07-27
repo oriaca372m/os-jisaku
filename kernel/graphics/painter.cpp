@@ -4,6 +4,11 @@
 #include "graphics.hpp"
 #include "layer.hpp"
 
+using graphics::FrameBuffer;
+using graphics::Painter;
+using graphics::PixelWriter;
+using graphics::Vector2D;
+
 Painter::Painter(FrameBuffer& buffer, Layer& layer) : buffer_(buffer), layer_(layer) {}
 Painter::~Painter() {
 	end();
@@ -28,12 +33,12 @@ void Painter::copy_y(int dst_y, int src_y, int src_end_y) {
 }
 
 void Painter::draw_rectangle(const Rect<int>& rect, const PixelColor& c) {
-	::draw_rectangle(raw_pixel_writer(), rect.top_left(), rect.size(), c);
+	graphics::draw_rectangle(raw_pixel_writer(), rect.top_left(), rect.size(), c);
 	raw_damage(rect);
 }
 
 void Painter::draw_filled_rectangle(const Rect<int>& rect, const PixelColor& c) {
-	::draw_filled_rectangle(raw_pixel_writer(), rect.top_left(), rect.size(), c);
+	graphics::draw_filled_rectangle(raw_pixel_writer(), rect.top_left(), rect.size(), c);
 	raw_damage(rect);
 }
 

@@ -17,7 +17,7 @@ int printk(const char* format, Args... args) {
 		return result;
 	}
 
-	global_console->put_string(buf);
+	graphics::global_console->put_string(buf);
 	return result;
 }
 

@@ -21,7 +21,9 @@ namespace {
 	};
 }
 
-void draw_window(Painter& painter, const char* title) {
+void draw_window(graphics::Painter& painter, const char* title) {
+	using graphics::PixelColor;
+
 	const auto size = painter.size();
 	const auto w = size.x;
 	const auto h = size.y;

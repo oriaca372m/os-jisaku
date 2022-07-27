@@ -1,9 +1,10 @@
 #include "logger.hpp"
 
 namespace logger {
-	ConsoleLogger::ConsoleLogger(IConsole* console, LogLevel log_level) : console_{console}, log_level_{log_level} {}
+	ConsoleLogger::ConsoleLogger(graphics::IConsole* console, LogLevel log_level) :
+		console_{console}, log_level_{log_level} {}
 
-	void ConsoleLogger::set_console(IConsole* console) {
+	void ConsoleLogger::set_console(graphics::IConsole* console) {
 		console_ = console;
 	}
 

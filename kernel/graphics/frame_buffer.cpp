@@ -2,6 +2,8 @@
 
 #include <cstring>
 
+using graphics::Vector2D;
+
 namespace {
 	void adjust_coords(
 		const Vector2D<std::uint32_t>& to_size,
@@ -88,6 +90,8 @@ namespace {
 		}
 	}
 }
+
+using graphics::FrameBuffer;
 
 FrameBuffer::FrameBuffer(const FrameBufferConfig& config) : config_(config) {
 	writer_traits_ = &get_suitable_device_pixel_writer_traits(config_.pixel_format);

@@ -2,6 +2,11 @@
 
 #include "layer.hpp"
 
+using graphics::Layer;
+using graphics::Rect;
+
+using graphics::LayerManager;
+
 LayerManager::LayerManager(PixelFormat pixel_format) : pixel_format_(pixel_format){};
 
 void LayerManager::set_buffer(FrameBuffer* buffer) {
@@ -155,6 +160,8 @@ void LayerManager::up_down(unsigned int id, int new_height) {
 	layer_stack_.erase(old_pos);
 	insert(new_pos, layer);
 }
+
+using graphics::DoubleBufferedLayerManager;
 
 void DoubleBufferedLayerManager::set_buffer(FrameBuffer* buffer) {
 	if (buffer == nullptr) {

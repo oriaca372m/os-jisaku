@@ -17,7 +17,7 @@ namespace {
 	}
 }
 
-void write_ascii(PixelWriter& writer, int x, int y, char c, const PixelColor& color) {
+void graphics::write_ascii(PixelWriter& writer, int x, int y, char c, const PixelColor& color) {
 	const auto font = get_font(c);
 	if (font == nullptr) {
 		return;
@@ -32,7 +32,7 @@ void write_ascii(PixelWriter& writer, int x, int y, char c, const PixelColor& co
 	}
 }
 
-void write_string(PixelWriter& writer, int x, int y, const char* s, const PixelColor& color) {
+void graphics::write_string(PixelWriter& writer, int x, int y, const char* s, const PixelColor& color) {
 	for (int i = 0; s[i] != u8'\0'; ++i) {
 		write_ascii(writer, x + i * 8, y, s[i], color);
 	}
