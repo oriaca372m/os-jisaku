@@ -2,6 +2,7 @@
 
 namespace kernel_interface::logger {
 	enum class LogLevel {
+		Panic = 1,
 		Error = 3,
 		Warn = 4,
 		Info = 6,

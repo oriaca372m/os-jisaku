@@ -118,8 +118,7 @@ kernel_main(const graphics::FrameBufferConfig& frame_buffer_config_ref, const Me
 	initialize_memory_manager(memory_map, *memory_manager);
 
 	if (auto err = initialize_heap(*memory_manager)) {
-		log->error("Failed to allocate pages: %s\n", err.name());
-		halt();
+		log->panic("Failed to allocate pages: %s\n", err.name());
 	}
 
 	initialize_lapic_timer();
@@ -134,8 +133,7 @@ kernel_main(const graphics::FrameBufferConfig& frame_buffer_config_ref, const Me
 
 	auto xhc_device = pci::find_xhc_device();
 	if (xhc_device == nullptr) {
-		log->error(u8"Could not found xHC!\n");
-		halt();
+		log->panic(u8"Could not found xHC!\n");
 	}
 	log->info(u8"xHC has been found: %d.%d.%d\n", xhc_device->bus, xhc_device->device, xhc_device->function);
 

@@ -5,6 +5,7 @@
 #include <kernel_interface/logger.hpp>
 
 #include "graphics/console.hpp"
+#include "utils.hpp"
 
 namespace logger {
 	using namespace kernel_interface::logger;
@@ -28,6 +29,12 @@ namespace logger {
 		LoggerProxy(ILogger& logger);
 
 		void log(LogLevel level, const char* msg);
+
+		template <typename... Args>
+		void panic(const char* format, Args... args) {
+			log_format(LogLevel::Panic, format, args...);
+			halt();
+		}
 
 		template <typename... Args>
 		void error(const char* format, Args... args) {
