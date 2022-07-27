@@ -1,5 +1,6 @@
 #include <cstdint>
 #include <cstdio>
+#include <queue>
 
 #include <asmfunc.hpp>
 #include <kernel_interface/logger.hpp>
@@ -20,7 +21,6 @@
 #include "memory_map.hpp"
 #include "paging.hpp"
 #include "pci.hpp"
-#include "queue.hpp"
 #include "sbrk.hpp"
 #include "segment.hpp"
 #include "timer.hpp"
@@ -71,7 +71,7 @@ namespace {
 		} type;
 	};
 
-	ArrayQueue<Message>* main_queue;
+	std::queue<Message>* main_queue;
 
 	__attribute__((interrupt)) void int_handler_xhci(InterruptFrame* frame) {
 		main_queue->push(Message{Message::Type::InterruptXHCI});
@@ -153,8 +153,7 @@ extern "C" void kernel_main(const FrameBufferConfig& frame_buffer_config_ref, co
 
 	initialize_lapic_timer();
 
-	std::array<Message, 32> main_queue_buffer;
-	ArrayQueue<Message> main_queue_instance(main_queue_buffer);
+	std::queue<Message> main_queue_instance;
 	main_queue = &main_queue_instance;
 
 	FrameBuffer screen(frame_buffer_config);
@@ -342,7 +341,7 @@ extern "C" void kernel_main(const FrameBufferConfig& frame_buffer_config_ref, co
 		test_layer->move({10, c % 100});
 
 		__asm__("cli");
-		if (main_queue->count() == 0) {
+		if (main_queue->empty()) {
 			__asm__("sti;"
 					//"hlt;"
 			);
