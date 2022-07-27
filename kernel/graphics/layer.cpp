@@ -1,18 +1,17 @@
 #include "layer.hpp"
+#include "layer_manager.hpp"
 
 #include <algorithm>
 #include <memory>
 
-using graphics::LayerManager;
-using graphics::Painter;
+using graphics::Layer;
+using graphics::LayerId;
 using graphics::Rect;
 using graphics::Vector2D;
 
-using graphics::Layer;
+Layer::Layer(LayerManager& manager, LayerId id) : manager_(manager), id_{id} {}
 
-Layer::Layer(LayerManager& manager, unsigned int id) : manager_(manager), id_{id} {}
-
-unsigned int Layer::id() const {
+LayerId Layer::id() const {
 	return id_;
 }
 
@@ -54,61 +53,4 @@ void Layer::set_draggable(bool draggable) {
 }
 bool Layer::is_draggable() const {
 	return draggable_;
-}
-
-using graphics::BufferLayer;
-
-BufferLayer::BufferLayer(LayerManager& manager, unsigned int id, PixelFormat pixel_format, Vector2D<int> size) :
-	Layer(manager, id), buffer_(FrameBufferConfig(size.x, size.y, pixel_format)) {}
-
-Vector2D<int> BufferLayer::size() const {
-	return buffer_.size();
-}
-
-void BufferLayer::draw_to(FrameBuffer& dst) const {
-	dst.copy_from(buffer_, pos_, transparent_color_);
-}
-
-void BufferLayer::draw_to(FrameBuffer& dst, Rect<int> damage) const {
-	const auto layer_rect = manager_area();
-	if (!damage.is_crossing(layer_rect)) {
-		return;
-	}
-
-	const auto cross = damage.cross(layer_rect);
-	dst.copy_from(buffer_, cross.top_left(), cross.top_left() - pos_, cross.size(), transparent_color_);
-}
-
-Painter BufferLayer::start_paint() {
-	return Painter(buffer_, *this);
-}
-
-using graphics::GroupLayer;
-
-GroupLayer::GroupLayer(LayerManager& manager, unsigned int id, PixelFormat pixel_format, Vector2D<int> size) :
-	Layer(manager, id), child_manager(pixel_format), buffer_(FrameBufferConfig(size.x, size.y, pixel_format)) {
-	child_manager.set_parent(this);
-	child_manager.set_buffer(&buffer_);
-}
-
-Vector2D<int> GroupLayer::size() const {
-	return buffer_.size();
-}
-
-void GroupLayer::draw_to(FrameBuffer& dst) const {
-	dst.copy_from(buffer_, pos_, transparent_color_);
-}
-
-void GroupLayer::draw_to(FrameBuffer& dst, Rect<int> damage) const {
-	const auto layer_rect = manager_area();
-	if (!damage.is_crossing(layer_rect)) {
-		return;
-	}
-
-	const auto cross = damage.cross(layer_rect);
-	dst.copy_from(buffer_, cross.top_left(), cross.top_left() - pos_, cross.size(), transparent_color_);
-}
-
-LayerManager& GroupLayer::layer_manager() {
-	return child_manager;
 }

@@ -1,8 +1,10 @@
 #include "graphics.hpp"
 
+#include "buffer_layer.hpp"
 #include "console.hpp"
 #include "frame_buffer.hpp"
-#include "layer.hpp"
+#include "group_layer.hpp"
+#include "layer_ids.hpp"
 #include "layer_manager.hpp"
 #include "logger.hpp"
 #include "mouse.hpp"
@@ -64,15 +66,15 @@ void graphics::initialize_graphics(
 	console_logger.set_console(global_console);
 
 	auto mouse_layer = make_mouse_layer(*layer_manager);
-	mouse_layer_id = mouse_layer->id();
+	layer_ids::mouse = mouse_layer->id();
 	mouse_layer->move({200, 200});
 
 	auto group_layer = layer_manager->new_layer<GroupLayer>(Vector2D<int>(500, 500));
-	group_layer_id = group_layer->id();
+	layer_ids::group_layer = group_layer->id();
 	group_layer->move({0, 0});
 
 	auto main_window_layer = layer_manager->new_layer<BufferLayer>(Vector2D<int>(160, 68));
-	main_window_layer_id = main_window_layer->id();
+	layer_ids::main_window = main_window_layer->id();
 	{
 		auto painter = main_window_layer->start_paint();
 		draw_window(painter, u8"Hello Window");
@@ -90,7 +92,7 @@ void graphics::initialize_graphics(
 		bg->start_paint().draw_filled_rectangle({0, 0, 500, 500}, tc);
 
 		auto test = group_manager.new_layer<BufferLayer>(Vector2D<int>(100, 100));
-		test_layer_id = test->id();
+		layer_ids::test_layer = test->id();
 		{
 			auto p = test->start_paint();
 			p.draw_filled_rectangle(Rect<int>::with_size({0, 0}, {100, 100}), {0xff, 0x00, 0xff});

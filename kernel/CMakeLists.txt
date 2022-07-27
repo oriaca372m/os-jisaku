@@ -26,6 +26,8 @@ add_executable(kernel.elf
 	graphics/console.cpp
 	graphics/mouse.cpp
 	graphics/layer.cpp
+	graphics/buffer_layer.cpp
+	graphics/group_layer.cpp
 	graphics/layer_manager.cpp
 	graphics/painter.cpp
 	graphics/frame_buffer.cpp

@@ -1,14 +1,13 @@
 #pragma once
 
 #include "frame_buffer.hpp"
+#include "layer.hpp"
 
 #include <memory>
 #include <utility>
 #include <vector>
 
 namespace graphics {
-	class Layer;
-
 	class LayerManager {
 	public:
 		LayerManager(PixelFormat pixel_format);
@@ -27,18 +26,18 @@ namespace graphics {
 
 		virtual void draw() const;
 
-		void move(unsigned int id, Vector2D<int> new_position);
-		void move_relative(unsigned int id, Vector2D<int> pos_diff);
+		void move(LayerId id, Vector2D<int> new_position);
+		void move_relative(LayerId id, Vector2D<int> pos_diff);
 
-		void up_down(unsigned int id, int new_height);
-		void hide(unsigned int id);
+		void up_down(LayerId id, int new_height);
+		void hide(LayerId id);
 
-		Layer* find_layer(unsigned int id) const;
-		Layer* find_layer_by_position(Vector2D<int> pos, unsigned int exclude_id) const;
+		Layer* find_layer(LayerId id) const;
+		Layer* find_layer_by_position(Vector2D<int> pos, LayerId exclude_id) const;
 
-		// layer_idを持つ属するLayerのコンテンツの範囲rectsが更新された時呼ばれる
+		// idを持つ属するLayerのコンテンツの範囲rectsが更新された時呼ばれる
 		// rectsはこのLayerManagerの座標空間
-		virtual void damage(unsigned int layer_id, const std::vector<Rect<int>>& rects) const;
+		virtual void damage(LayerId id, const std::vector<Rect<int>>& rects) const;
 
 	protected:
 		FrameBuffer* buffer_ = nullptr;
@@ -46,19 +45,19 @@ namespace graphics {
 		std::vector<Layer*> layer_stack_{};
 
 		void draw_to(FrameBuffer& buffer) const;
-		void draw_damage_to(FrameBuffer& buffer, unsigned int layer_id, const Rect<int>& rects) const;
+		void draw_damage_to(FrameBuffer& buffer, LayerId id, const Rect<int>& rects) const;
 		Rect<int> merge_rects(const std::vector<Rect<int>>& rects) const;
 
 	private:
 		const PixelFormat pixel_format_;
 
 		std::vector<std::unique_ptr<Layer>> layers_{};
-		unsigned int latest_id_ = 0;
+		LayerId latest_id_ = 0;
 
-		decltype(layer_stack_)::iterator find_layer_stack_itr(unsigned int id);
-		decltype(layer_stack_)::iterator find_layer_stack_itr(unsigned int id, decltype(layer_stack_)::iterator begin);
+		decltype(layer_stack_)::iterator find_layer_stack_itr(LayerId id);
+		decltype(layer_stack_)::iterator find_layer_stack_itr(LayerId id, decltype(layer_stack_)::iterator begin);
 		decltype(layer_stack_)::const_iterator
-		find_layer_stack_itr(unsigned int id, decltype(layer_stack_)::const_iterator begin) const;
+		find_layer_stack_itr(LayerId id, decltype(layer_stack_)::const_iterator begin) const;
 	};
 
 	class DoubleBufferedLayerManager final : public LayerManager {
@@ -67,14 +66,11 @@ namespace graphics {
 		void set_buffer(FrameBuffer* buffer) override;
 
 		void draw() const override;
-		void damage(unsigned int layer_id, const std::vector<Rect<int>>& rects) const override;
+		void damage(LayerId id, const std::vector<Rect<int>>& rects) const override;
 
 	private:
 		mutable std::optional<FrameBuffer> back_buffer_;
 	};
 
 	inline LayerManager* layer_manager = nullptr;
-	inline unsigned int main_window_layer_id;
-	inline unsigned int group_layer_id;
-	inline unsigned int test_layer_id;
 }

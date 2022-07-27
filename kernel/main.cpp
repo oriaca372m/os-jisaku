@@ -1,5 +1,6 @@
 #include <cstdint>
 #include <cstdio>
+#include <optional>
 #include <queue>
 
 #include <asmfunc.hpp>
@@ -13,7 +14,8 @@
 #include "graphics/console.hpp"
 #include "graphics/frame_buffer_config.hpp"
 #include "graphics/graphics.hpp"
-#include "graphics/layer.hpp"
+#include "graphics/group_layer.hpp"
+#include "graphics/layer_ids.hpp"
 #include "graphics/mouse.hpp"
 #include "interrupt.hpp"
 #include "logger.hpp"
@@ -30,17 +32,17 @@
 namespace {
 	void mouse_observer(std::uint8_t buttons, std::int8_t dx, std::int8_t dy) {
 		using graphics::layer_manager;
-		using graphics::mouse_layer_id;
+		namespace layer_ids = graphics::layer_ids;
 		using graphics::Vector2D;
 
-		static unsigned int mouse_drag_layer_id = 0;
+		static std::optional<graphics::LayerId> dragging_layer_id;
 		static std::uint8_t previous_buttons = 0;
 		static Vector2D<int> mouse_position = {0, 0};
 
 		const auto old_pos = mouse_position;
 		const auto new_pos = mouse_position + Vector2D<int>(dx, dy);
 		mouse_position = new_pos.max({0, 0}).min(graphics::screen_size - Vector2D<int>(1, 1));
-		layer_manager->move(mouse_layer_id, mouse_position);
+		layer_manager->move(layer_ids::mouse, mouse_position);
 
 		const auto pos_diff = mouse_position - old_pos;
 
@@ -49,18 +51,18 @@ namespace {
 
 		if (!is_previous_left_pressed && is_left_pressed) {
 			// ドラッグを始めた瞬間
-			auto layer = layer_manager->find_layer_by_position(mouse_position, mouse_layer_id);
+			auto layer = layer_manager->find_layer_by_position(mouse_position, layer_ids::mouse);
 			if (layer != nullptr && layer->is_draggable()) {
-				mouse_drag_layer_id = layer->id();
+				dragging_layer_id = layer->id();
 			}
 		} else if (is_previous_left_pressed && is_left_pressed) {
 			// ドラッグ中
-			if (mouse_drag_layer_id > 0) {
-				layer_manager->move_relative(mouse_drag_layer_id, pos_diff);
+			if (dragging_layer_id) {
+				layer_manager->move_relative(*dragging_layer_id, pos_diff);
 			}
 		} else if (is_previous_left_pressed && !is_left_pressed) {
 			// ドラッグを終えた瞬間
-			mouse_drag_layer_id = 0;
+			dragging_layer_id.reset();
 		}
 
 		previous_buttons = buttons;
@@ -205,11 +207,11 @@ kernel_main(const graphics::FrameBufferConfig& frame_buffer_config_ref, const Me
 	int c = 0;
 	char str[128];
 
+	namespace layer_ids = graphics::layer_ids;
 	auto main_window_layer =
-		static_cast<graphics::BufferLayer*>(graphics::layer_manager->find_layer(graphics::main_window_layer_id));
-	auto group_layer =
-		static_cast<graphics::GroupLayer*>(graphics::layer_manager->find_layer(graphics::group_layer_id));
-	auto test_layer = group_layer->layer_manager().find_layer(graphics::test_layer_id);
+		static_cast<graphics::BufferLayer*>(graphics::layer_manager->find_layer(layer_ids::main_window));
+	auto group_layer = static_cast<graphics::GroupLayer*>(graphics::layer_manager->find_layer(layer_ids::group_layer));
+	auto test_layer = group_layer->layer_manager().find_layer(layer_ids::test_layer);
 
 	while (true) {
 		++c;

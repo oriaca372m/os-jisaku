@@ -1,6 +1,6 @@
 #pragma once
 
-#include "layer.hpp"
+#include "buffer_layer.hpp"
 #include "pixel_writer.hpp"
 
 namespace graphics {

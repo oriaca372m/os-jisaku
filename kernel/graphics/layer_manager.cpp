@@ -17,7 +17,7 @@ void LayerManager::set_parent(Layer* parent) {
 	parent_ = parent;
 }
 
-Layer* LayerManager::find_layer(unsigned int id) const {
+Layer* LayerManager::find_layer(LayerId id) const {
 	const auto it = std::find_if(layers_.cbegin(), layers_.cend(), [id](const auto& elm) { return elm->id() == id; });
 	if (it == layers_.end()) {
 		return nullptr;
@@ -25,7 +25,7 @@ Layer* LayerManager::find_layer(unsigned int id) const {
 	return it->get();
 }
 
-Layer* LayerManager::find_layer_by_position(Vector2D<int> pos, unsigned int exclude_id) const {
+Layer* LayerManager::find_layer_by_position(Vector2D<int> pos, LayerId exclude_id) const {
 	auto it = std::find_if(layer_stack_.crbegin(), layer_stack_.crend(), [pos, exclude_id](Layer* layer) {
 		if (layer->id() == exclude_id) {
 			return false;
@@ -40,25 +40,25 @@ Layer* LayerManager::find_layer_by_position(Vector2D<int> pos, unsigned int excl
 	return *it;
 }
 
-decltype(LayerManager::layer_stack_)::iterator LayerManager::find_layer_stack_itr(unsigned int id) {
+decltype(LayerManager::layer_stack_)::iterator LayerManager::find_layer_stack_itr(LayerId id) {
 	return find_layer_stack_itr(id, layer_stack_.begin());
 }
 
 decltype(LayerManager::layer_stack_)::iterator
-LayerManager::find_layer_stack_itr(unsigned int id, decltype(layer_stack_)::iterator begin) {
+LayerManager::find_layer_stack_itr(LayerId id, decltype(layer_stack_)::iterator begin) {
 	return std::find_if(begin, layer_stack_.end(), [id](const auto& elm) { return elm->id() == id; });
 }
 
 decltype(LayerManager::layer_stack_)::const_iterator
-LayerManager::find_layer_stack_itr(unsigned int id, decltype(layer_stack_)::const_iterator begin) const {
+LayerManager::find_layer_stack_itr(LayerId id, decltype(layer_stack_)::const_iterator begin) const {
 	return std::find_if(begin, layer_stack_.cend(), [id](const auto& elm) { return elm->id() == id; });
 }
 
-void LayerManager::move(unsigned int id, Vector2D<int> new_position) {
+void LayerManager::move(LayerId id, Vector2D<int> new_position) {
 	find_layer(id)->move(new_position);
 }
 
-void LayerManager::move_relative(unsigned int id, Vector2D<int> pos_diff) {
+void LayerManager::move_relative(LayerId id, Vector2D<int> pos_diff) {
 	find_layer(id)->move_relative(pos_diff);
 }
 
@@ -76,19 +76,19 @@ void LayerManager::draw_to(FrameBuffer& buffer) const {
 	}
 }
 
-void LayerManager::damage(unsigned int layer_id, const std::vector<Rect<int>>& rects) const {
+void LayerManager::damage(LayerId id, const std::vector<Rect<int>>& rects) const {
 	if (buffer_ == nullptr || rects.empty()) {
 		return;
 	}
 
-	draw_damage_to(*buffer_, layer_id, merge_rects(rects));
+	draw_damage_to(*buffer_, id, merge_rects(rects));
 
 	if (parent_ != nullptr) {
 		parent_->damage(rects);
 	}
 }
 
-void LayerManager::draw_damage_to(FrameBuffer& buffer, unsigned int layer_id, const Rect<int>& rect) const {
+void LayerManager::draw_damage_to(FrameBuffer& buffer, LayerId id, const Rect<int>& rect) const {
 	// 不透明でdamage範囲を完全に含む最前面のレイヤーiを探す
 	// それより背面にあるレイヤーはレイヤーiに隠されるので描画する必要が無い
 	auto i = layer_stack_.end();
@@ -105,7 +105,7 @@ void LayerManager::draw_damage_to(FrameBuffer& buffer, unsigned int layer_id, co
 	}
 
 	// damageされたレイヤーがレイヤーi以上に前面になければ描画をスキップ
-	if (find_layer_stack_itr(layer_id, i) == layer_stack_.end()) {
+	if (find_layer_stack_itr(id, i) == layer_stack_.end()) {
 		return;
 	}
 
@@ -122,14 +122,14 @@ Rect<int> LayerManager::merge_rects(const std::vector<Rect<int>>& rects) const {
 	return merged_rect;
 };
 
-void LayerManager::hide(unsigned int id) {
+void LayerManager::hide(LayerId id) {
 	const auto pos = find_layer_stack_itr(id);
 	if (pos != layer_stack_.end()) {
 		layer_stack_.erase(pos);
 	}
 }
 
-void LayerManager::up_down(unsigned int id, int new_height) {
+void LayerManager::up_down(LayerId id, int new_height) {
 	if (new_height < 0) {
 		hide(id);
 		return;
@@ -182,13 +182,13 @@ void DoubleBufferedLayerManager::draw() const {
 	buffer_->forward(*back_buffer_);
 }
 
-void DoubleBufferedLayerManager::damage(unsigned int layer_id, const std::vector<Rect<int>>& rects) const {
+void DoubleBufferedLayerManager::damage(LayerId id, const std::vector<Rect<int>>& rects) const {
 	if (buffer_ == nullptr || rects.empty()) {
 		return;
 	}
 
 	auto merged_rect = merge_rects(rects);
-	draw_damage_to(*back_buffer_, layer_id, merged_rect);
+	draw_damage_to(*back_buffer_, id, merged_rect);
 	buffer_->copy_from(*back_buffer_, merged_rect.top_left(), merged_rect.top_left(), merged_rect.size(), std::nullopt);
 
 	if (parent_ != nullptr) {

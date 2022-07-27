@@ -4,16 +4,19 @@
 #include <optional>
 
 #include "frame_buffer.hpp"
-#include "layer_manager.hpp"
 #include "painter.hpp"
 
 namespace graphics {
+	using LayerId = unsigned int;
+
+	class LayerManager;
+
 	class Layer {
 	public:
-		Layer(LayerManager& manager, unsigned int id);
+		Layer(LayerManager& manager, LayerId id);
 		virtual ~Layer() = default;
 
-		unsigned int id() const;
+		LayerId id() const;
 		virtual Vector2D<int> pos() const;
 		virtual Vector2D<int> size() const = 0;
 
@@ -38,40 +41,9 @@ namespace graphics {
 
 	protected:
 		LayerManager& manager_;
-		const unsigned int id_;
+		const LayerId id_;
 		Vector2D<int> pos_ = {0, 0};
 		std::optional<PixelColor> transparent_color_;
 		bool draggable_ = false;
-	};
-
-	class BufferLayer final : public Layer {
-	public:
-		BufferLayer(LayerManager& manager, unsigned int id, PixelFormat pixel_format, Vector2D<int> size);
-
-		Vector2D<int> size() const override;
-
-		void draw_to(FrameBuffer& dst) const override;
-		void draw_to(FrameBuffer& dst, Rect<int> damage) const override;
-
-		Painter start_paint();
-
-	private:
-		FrameBuffer buffer_;
-	};
-
-	class GroupLayer final : public Layer {
-	public:
-		GroupLayer(LayerManager& manager, unsigned int id, PixelFormat pixel_format, Vector2D<int> size);
-
-		Vector2D<int> size() const override;
-
-		void draw_to(FrameBuffer& dst) const override;
-		void draw_to(FrameBuffer& dst, Rect<int> damage) const override;
-
-		LayerManager& layer_manager();
-
-	private:
-		LayerManager child_manager;
-		FrameBuffer buffer_;
 	};
 }
