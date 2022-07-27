@@ -1,6 +1,7 @@
 #include "painter.hpp"
 
 #include "font.hpp"
+#include "graphics.hpp"
 #include "layer.hpp"
 
 Painter::Painter(FrameBuffer& buffer, Layer& layer) : buffer_(buffer), layer_(layer) {}

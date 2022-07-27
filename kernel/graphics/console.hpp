@@ -1,7 +1,7 @@
 #pragma once
 
-#include "graphics.hpp"
 #include "layer.hpp"
+#include "pixel_writer.hpp"
 
 class IConsole {
 public:
