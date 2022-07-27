@@ -1,9 +1,11 @@
 #pragma once
 
-#include "error.hpp"
 #include <array>
 #include <cstddef>
 #include <limits>
+
+#include "error.hpp"
+#include "memory_map.hpp"
 
 namespace {
 	constexpr unsigned long long operator""_kib(unsigned long long kib) {
@@ -65,3 +67,5 @@ private:
 	bool get_bit(FrameID frame) const;
 	void set_bit(FrameID frame, bool allocated);
 };
+
+void initialize_memory_manager(const MemoryMap& memory_map, BitmapMemoryManager& memory_manager);

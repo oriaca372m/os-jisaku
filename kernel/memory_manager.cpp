@@ -62,3 +62,29 @@ Error BitmapMemoryManager::free(FrameID start_frame, std::size_t num_frames) {
 
 	return Error::Code::Success;
 }
+
+void initialize_memory_manager(const MemoryMap& memory_map, BitmapMemoryManager& memory_manager) {
+	const auto memory_map_base = reinterpret_cast<std::uintptr_t>(memory_map.buffer);
+
+	std::uintptr_t available_end = 0;
+	for (std::uintptr_t iter = memory_map_base; iter < memory_map_base + memory_map.map_size;
+		 iter += memory_map.descriptor_size) {
+		auto desc = reinterpret_cast<const MemoryDescriptor*>(iter);
+
+		if (available_end < desc->physical_start) {
+			memory_manager.mark_allocated(
+				FrameID(available_end / bytes_per_frame), (desc->physical_start - available_end) / bytes_per_frame);
+		}
+
+		if (is_available(static_cast<MemoryType>(desc->type))) {
+			const auto physical_end = desc->physical_start + desc->number_of_pages * uefi_page_size;
+			available_end = physical_end;
+		} else {
+			memory_manager.mark_allocated(
+				FrameID(desc->physical_start / bytes_per_frame),
+				desc->number_of_pages * uefi_page_size / bytes_per_frame);
+		}
+	}
+
+	memory_manager.set_memory_range(FrameID(1), FrameID(available_end / bytes_per_frame));
+}

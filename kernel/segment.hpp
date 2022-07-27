@@ -24,3 +24,4 @@ union SegmentDescriptor {
 } __attribute__((packed));
 
 void setup_segments();
+void initialize_segmentation();

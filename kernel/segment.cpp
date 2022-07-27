@@ -53,3 +53,11 @@ void setup_segments() {
 	set_data_segment(gdt[2], DescriptorType::ReadWrite, 0, 0, 0xfffff);
 	load_gdp(sizeof(gdt) - 1, reinterpret_cast<std::uintptr_t>(&gdt[0]));
 }
+
+void initialize_segmentation() {
+	setup_segments();
+	const std::uint16_t kernel_cs = 1 << 3;
+	const std::uint16_t kernel_ss = 2 << 3;
+	set_ds_all(0);
+	set_cs_ss(kernel_cs, kernel_ss);
+}

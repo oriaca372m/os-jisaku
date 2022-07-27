@@ -80,16 +80,17 @@ namespace {
 
 	alignas(BitmapMemoryManager) std::uint8_t memory_manager_buf[sizeof(BitmapMemoryManager)];
 	BitmapMemoryManager* memory_manager = reinterpret_cast<BitmapMemoryManager*>(&memory_manager_buf);
+
+	alignas(std::max_align_t) char fb_pixel_writer_buf[max_device_pixel_writer_size];
+	DevicePixelWriter* fb_pixel_writer = reinterpret_cast<DevicePixelWriter*>(fb_pixel_writer_buf);
 }
 
 extern "C" void kernel_main(const FrameBufferConfig& frame_buffer_config_ref, const MemoryMap& memory_map_ref) {
 	auto frame_buffer_config = frame_buffer_config_ref;
 	auto memory_map = memory_map_ref;
 
-	char fb_pixel_writer_buf[max_device_pixel_writer_size];
 	get_suitable_device_pixel_writer_traits(frame_buffer_config.pixel_format)
 		.construct(frame_buffer_config, fb_pixel_writer_buf);
-	auto fb_pixel_writer = reinterpret_cast<DevicePixelWriter*>(fb_pixel_writer_buf);
 
 	const PixelColor desktop_fg_color{0xc8, 0xc8, 0xc6};
 	const PixelColor desktop_bg_color{0x1d, 0x1f, 0x21};
@@ -109,42 +110,13 @@ extern "C" void kernel_main(const FrameBufferConfig& frame_buffer_config_ref, co
 	log = &logger_proxy;
 
 	// セグメンテーションの設定
-	setup_segments();
-	const std::uint16_t kernel_cs = 1 << 3;
-	const std::uint16_t kernel_ss = 2 << 3;
-	set_ds_all(0);
-	set_cs_ss(kernel_cs, kernel_ss);
-
+	initialize_segmentation();
 	// ページングの設定
 	setup_identity_page_table();
 
 	// メモリマネージャの設定
-	{
-		new (memory_manager) BitmapMemoryManager();
-		const auto memory_map_base = reinterpret_cast<std::uintptr_t>(memory_map.buffer);
-
-		std::uintptr_t available_end = 0;
-		for (std::uintptr_t iter = memory_map_base; iter < memory_map_base + memory_map.map_size;
-			 iter += memory_map.descriptor_size) {
-			auto desc = reinterpret_cast<const MemoryDescriptor*>(iter);
-
-			if (available_end < desc->physical_start) {
-				memory_manager->mark_allocated(
-					FrameID(available_end / bytes_per_frame), (desc->physical_start - available_end) / bytes_per_frame);
-			}
-
-			if (is_available(static_cast<MemoryType>(desc->type))) {
-				const auto physical_end = desc->physical_start + desc->number_of_pages * uefi_page_size;
-				available_end = physical_end;
-			} else {
-				memory_manager->mark_allocated(
-					FrameID(desc->physical_start / bytes_per_frame),
-					desc->number_of_pages * uefi_page_size / bytes_per_frame);
-			}
-		}
-
-		memory_manager->set_memory_range(FrameID(1), FrameID(available_end / bytes_per_frame));
-	}
+	new (memory_manager) BitmapMemoryManager();
+	initialize_memory_manager(memory_map, *memory_manager);
 
 	if (auto err = initialize_heap(*memory_manager)) {
 		log->error("Failed to allocate pages: %s\n", err.name());
@@ -230,29 +202,6 @@ extern "C" void kernel_main(const FrameBufferConfig& frame_buffer_config_ref, co
 
 	printk(u8"chino chan kawaii!\n");
 	printk(u8"gochuumon wa usagi desu ka?\n");
-
-	const std::array available_memory_types{
-		MemoryType::EfiBootServicesCode,
-		MemoryType::EfiBootServicesData,
-		MemoryType::EfiConventionalMemory,
-	};
-
-	for (auto iter = reinterpret_cast<std::uintptr_t>(memory_map.buffer);
-		 iter < reinterpret_cast<std::uintptr_t>(memory_map.buffer) + memory_map.map_size;
-		 iter += memory_map.descriptor_size) {
-		auto desc = reinterpret_cast<MemoryDescriptor*>(iter);
-		for (const auto& type : available_memory_types) {
-			if (desc->type == static_cast<std::uint32_t>(type)) {
-				printk(
-					u8"type = %u, phys = %08lx - %08lx, pages = %lu, attr = %08lx\n",
-					desc->type,
-					desc->physical_start,
-					desc->physical_start + desc->number_of_pages * 4096 - 1,
-					desc->number_of_pages,
-					desc->attribute);
-			}
-		}
-	}
 
 	auto err = pci::scan_all_bus();
 	log->debug(u8"pci::scan_all_bus(): %s\n", err.name());
