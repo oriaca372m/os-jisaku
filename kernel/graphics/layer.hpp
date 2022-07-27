@@ -32,11 +32,15 @@ public:
 	// 属しているLayerManagerの座標空間でこのLayerが表示される領域
 	Rect<int> manager_area() const;
 
+	void set_draggable(bool draggable);
+	bool is_draggable() const;
+
 protected:
 	LayerManager& manager_;
 	const unsigned int id_;
 	Vector2D<int> pos_ = {0, 0};
 	std::optional<PixelColor> transparent_color_;
+	bool draggable_ = false;
 };
 
 class BufferLayer final : public Layer {

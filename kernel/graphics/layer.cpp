@@ -42,6 +42,13 @@ void Layer::damage(const std::vector<Rect<int>>& rects) {
 	manager_.damage(id_, res);
 };
 
+void Layer::set_draggable(bool draggable) {
+	draggable_ = draggable;
+}
+bool Layer::is_draggable() const {
+	return draggable_;
+}
+
 BufferLayer::BufferLayer(LayerManager& manager, unsigned int id, PixelFormat pixel_format, Vector2D<int> size) :
 	Layer(manager, id), buffer_(FrameBufferConfig(size.x, size.y, pixel_format)) {}
 

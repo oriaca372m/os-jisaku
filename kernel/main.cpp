@@ -49,7 +49,7 @@ namespace {
 		if (!is_previous_left_pressed && is_left_pressed) {
 			// ドラッグを始めた瞬間
 			auto layer = layer_manager->find_layer_by_position(mouse_position, mouse_layer_id);
-			if (layer != nullptr) {
+			if (layer != nullptr && layer->is_draggable()) {
 				mouse_drag_layer_id = layer->id();
 			}
 		} else if (is_previous_left_pressed && is_left_pressed) {
@@ -195,6 +195,7 @@ extern "C" void kernel_main(const FrameBufferConfig& frame_buffer_config_ref, co
 		painter.draw_string({8, 44}, u8"Chino-chan Kawaii!", {0, 0, 0});
 	}
 	main_window_layer->move({300, 300});
+	main_window_layer->set_draggable(true);
 
 	Layer* test_layer;
 
