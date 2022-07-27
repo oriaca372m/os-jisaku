@@ -28,9 +28,6 @@
 #include "window.hpp"
 
 namespace {
-	unsigned int mouse_layer_id;
-	Vector2D<int> screen_size;
-
 	void mouse_observer(std::uint8_t buttons, std::int8_t dx, std::int8_t dy) {
 		static unsigned int mouse_drag_layer_id = 0;
 		static std::uint8_t previous_buttons = 0;
@@ -92,9 +89,6 @@ extern "C" void kernel_main(const FrameBufferConfig& frame_buffer_config_ref, co
 	get_suitable_device_pixel_writer_traits(frame_buffer_config.pixel_format)
 		.construct(frame_buffer_config, fb_pixel_writer_buf);
 
-	const PixelColor desktop_fg_color{0xc8, 0xc8, 0xc6};
-	const PixelColor desktop_bg_color{0x1d, 0x1f, 0x21};
-
 	const int frame_width = frame_buffer_config.horizontal_resolution;
 	const int frame_height = frame_buffer_config.vertical_resolution;
 	screen_size = {frame_width, frame_height};
@@ -128,80 +122,7 @@ extern "C" void kernel_main(const FrameBufferConfig& frame_buffer_config_ref, co
 	std::queue<Message> main_queue_instance;
 	main_queue = &main_queue_instance;
 
-	FrameBuffer screen(frame_buffer_config);
-	layer_manager = new DoubleBufferedLayerManager(frame_buffer_config.pixel_format);
-
-	auto bg_layer = layer_manager->new_layer<BufferLayer>(Vector2D<int>(frame_width, frame_width));
-	bg_layer->move({0, 0});
-
-	{
-		auto painter = bg_layer->start_paint();
-
-		painter.draw_filled_rectangle({{0, 0}, {frame_width, frame_height - 50}}, desktop_bg_color);
-		painter.draw_filled_rectangle({{0, frame_height - 50}, {frame_width, frame_height}}, {1, 8, 17});
-		painter.draw_filled_rectangle({{0, frame_height - 50}, {frame_width / 5, frame_height}}, {80, 80, 80});
-		painter.draw_rectangle({{10, frame_height - 40}, {40, frame_height - 10}}, {160, 160, 160});
-
-		painter.draw_filled_rectangle({{500, 500}, {600, 600}}, {255, 0, 0});
-	}
-
-	auto console_layer = layer_manager->new_layer<BufferLayer>(Vector2D<int>(640, 400));
-	console_layer->move({200, 150});
-
-	auto fast_console = FastConsole(desktop_fg_color, {0, 0, 123}, *console_layer);
-	global_console = &fast_console;
-	console_logger.set_console(global_console);
-
-	auto mouse_layer = make_mouse_layer(*layer_manager);
-	mouse_layer_id = mouse_layer->id();
-	mouse_layer->move({200, 200});
-
-	auto group_layer = layer_manager->new_layer<GroupLayer>(Vector2D<int>(500, 500));
-	group_layer->move({0, 0});
-
-	auto main_window_layer = layer_manager->new_layer<BufferLayer>(Vector2D<int>(160, 68));
-	{
-		auto painter = main_window_layer->start_paint();
-		draw_window(painter, u8"Hello Window");
-		painter.draw_string({8, 44}, u8"Chino-chan Kawaii!", {0, 0, 0});
-	}
-	main_window_layer->move({300, 300});
-	main_window_layer->set_draggable(true);
-
-	Layer* test_layer;
-
-	{
-		auto& group_manager = group_layer->layer_manager();
-
-		auto bg = group_manager.new_layer<BufferLayer>(Vector2D<int>(500, 500));
-		const auto tc = PixelColor({0x00, 0xff, 0x00});
-		group_layer->set_transparent_color(tc);
-		bg->start_paint().draw_filled_rectangle({0, 0, 500, 500}, tc);
-
-		auto test = group_manager.new_layer<BufferLayer>(Vector2D<int>(100, 100));
-		test_layer = test;
-		{
-			auto p = test->start_paint();
-			p.draw_filled_rectangle(Rect<int>::with_size({0, 0}, {100, 100}), {0xff, 0x00, 0xff});
-			p.draw_filled_rectangle(Rect<int>::with_size({30, 30}, {50, 50}), {0xff, 0xff, 0x00});
-		}
-		test->move({10, 10});
-
-		group_manager.up_down(bg->id(), 0);
-		group_manager.up_down(test->id(), 1);
-	}
-
-	layer_manager->up_down(bg_layer->id(), 0);
-	layer_manager->up_down(console_layer->id(), 1);
-	layer_manager->up_down(group_layer->id(), 2);
-	layer_manager->up_down(main_window_layer->id(), 3);
-	layer_manager->up_down(mouse_layer->id(), 4);
-
-	layer_manager->set_buffer(&screen);
-	layer_manager->draw();
-
-	printk(u8"chino chan kawaii!\n");
-	printk(u8"gochuumon wa usagi desu ka?\n");
+	initialize_graphics(frame_buffer_config, console_logger);
 
 	auto err = pci::scan_all_bus();
 	log->debug(u8"pci::scan_all_bus(): %s\n", err.name());
@@ -278,6 +199,10 @@ extern "C" void kernel_main(const FrameBufferConfig& frame_buffer_config_ref, co
 
 	int c = 0;
 	char str[128];
+
+	auto main_window_layer = static_cast<BufferLayer*>(layer_manager->find_layer(main_window_layer_id));
+	auto group_layer = static_cast<GroupLayer*>(layer_manager->find_layer(group_layer_id));
+	auto test_layer = group_layer->layer_manager().find_layer(test_layer_id);
 
 	while (true) {
 		++c;

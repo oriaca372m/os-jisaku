@@ -12,7 +12,7 @@ void LayerManager::set_parent(Layer* parent) {
 	parent_ = parent;
 }
 
-Layer* LayerManager::find_layer(unsigned int id) {
+Layer* LayerManager::find_layer(unsigned int id) const {
 	const auto it = std::find_if(layers_.cbegin(), layers_.cend(), [id](const auto& elm) { return elm->id() == id; });
 	if (it == layers_.end()) {
 		return nullptr;

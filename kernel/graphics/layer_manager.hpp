@@ -32,6 +32,7 @@ public:
 	void up_down(unsigned int id, int new_height);
 	void hide(unsigned int id);
 
+	Layer* find_layer(unsigned int id) const;
 	Layer* find_layer_by_position(Vector2D<int> pos, unsigned int exclude_id) const;
 
 	// layer_idを持つ属するLayerのコンテンツの範囲rectsが更新された時呼ばれる
@@ -53,7 +54,6 @@ private:
 	std::vector<std::unique_ptr<Layer>> layers_{};
 	unsigned int latest_id_ = 0;
 
-	Layer* find_layer(unsigned int id);
 	decltype(layer_stack_)::iterator find_layer_stack_itr(unsigned int id);
 	decltype(layer_stack_)::iterator find_layer_stack_itr(unsigned int id, decltype(layer_stack_)::iterator begin);
 	decltype(layer_stack_)::const_iterator
@@ -73,3 +73,6 @@ private:
 };
 
 inline LayerManager* layer_manager = nullptr;
+inline unsigned int main_window_layer_id;
+inline unsigned int group_layer_id;
+inline unsigned int test_layer_id;
