@@ -20,14 +20,12 @@
 #include "interrupt.hpp"
 #include "logger.hpp"
 #include "memory_manager.hpp"
-#include "memory_map.hpp"
 #include "paging.hpp"
 #include "pci.hpp"
 #include "sbrk.hpp"
 #include "segment.hpp"
 #include "timer.hpp"
 #include "utils.hpp"
-#include "window.hpp"
 
 namespace {
 	void mouse_observer(std::uint8_t buttons, std::int8_t dx, std::int8_t dy) {
@@ -134,21 +132,11 @@ kernel_main(const graphics::FrameBufferConfig& frame_buffer_config_ref, const Me
 	auto err = pci::scan_all_bus();
 	log->debug(u8"pci::scan_all_bus(): %s\n", err.name());
 
-	pci::Device* xhc_device = nullptr;
-	for (int i = 0; i < pci::num_devices; ++i) {
-		if (pci::devices[i].class_code.match(0x0cu, 0x03u, 0x30u)) {
-			xhc_device = &pci::devices[i];
-			if (xhc_device->vendor_id == 0x8086) {
-				break;
-			}
-		}
-	}
-
+	auto xhc_device = pci::find_xhc_device();
 	if (xhc_device == nullptr) {
 		log->error(u8"Could not found xHC!\n");
 		halt();
 	}
-
 	log->info(u8"xHC has been found: %d.%d.%d\n", xhc_device->bus, xhc_device->device, xhc_device->function);
 
 	// 割り込みの設定

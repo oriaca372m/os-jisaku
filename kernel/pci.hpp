@@ -66,4 +66,6 @@ namespace pci {
 		MSIDeliveryMode delivery_mode,
 		std::uint8_t vector,
 		unsigned int num_vector_exponent);
+
+	Device* find_xhc_device();
 }

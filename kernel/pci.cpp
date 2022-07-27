@@ -320,4 +320,17 @@ namespace pci {
 
 		return configure_msi(device, msg_addr, msg_data, num_vector_exponent);
 	}
+
+	Device* find_xhc_device() {
+		Device* xhc_device = nullptr;
+		for (int i = 0; i < num_devices; ++i) {
+			if (devices[i].class_code.match(0x0cu, 0x03u, 0x30u)) {
+				xhc_device = &devices[i];
+				if (xhc_device->vendor_id == 0x8086) {
+					break;
+				}
+			}
+		}
+		return xhc_device;
+	}
 }
